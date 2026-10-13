@@ -1,0 +1,28 @@
+FROM node:22-slim
+
+WORKDIR /app
+
+# Enable pnpm via corepack
+RUN corepack enable pnpm
+
+# Install system deps for native modules (bcryptjs, etc.)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 make g++ \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy workspace config first (cache layer)
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
+COPY packages/shared ./packages/shared
+COPY packages/ui ./packages/ui
+COPY tooling/eslint ./tooling/eslint
+COPY apps/server ./apps/server
+COPY apps/web ./apps/web
+
+# Install ALL deps (including dev)
+RUN pnpm install --frozen-lockfile
+
+# Expose all dev ports
+EXPOSE 3000 8000 9229 5432
+
+# Default command does nothing - compose overrides
+CMD ["sleep", "infinity"]

@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FlowBoard — Organize work. Ship products faster.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #05070d;
+    --bg-2: #070a13;
+    --panel: #10131c;
+    --panel-2: #12151f;
+    --line: rgba(255,255,255,0.08);
+    --line-soft: rgba(255,255,255,0.06);
+    --text: #f2f3f7;
+    --text-dim: #9a9fae;
+    --text-dimmer: #6b7080;
+    --blue: #4f6bff;
+    --blue-2: #6d8bff;
+    --blue-glow: #3a56ff;
+    --green: #34c77b;
+    --orange: #e2924a;
+    --purple: #8b6cf5;
+    --radius: 14px;
+  }
+
+  *{margin:0;padding:0;box-sizing:border-box;}
+
+  html,body{
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  a{color:inherit;text-decoration:none;}
+
+  .page{
+    position: relative;
+    min-height: 100vh;
+    background: var(--bg);
+  }
+
+  /* ambient glow */
+  .glow{
+    position: absolute;
+    top: -120px;
+    right: -220px;
+    width: 1100px;
+    height: 1100px;
+    background: radial-gradient(circle at 50% 50%, rgba(63,90,255,0.30), rgba(63,90,255,0.10) 40%, transparent 70%);
+    filter: blur(10px);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .glow-2{
+    position:absolute;
+    top: 260px;
+    left: -260px;
+    width: 700px;
+    height: 700px;
+    background: radial-gradient(circle, rgba(63,90,255,0.10), transparent 70%);
+    pointer-events:none;
+    z-index:0;
+  }
+
+  .stars{
+    position:absolute;
+    inset:0;
+    background-image:
+      radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.35) 0, transparent 40%),
+      radial-gradient(1px 1px at 70% 15%, rgba(255,255,255,0.25) 0, transparent 40%),
+      radial-gradient(1px 1px at 85% 60%, rgba(255,255,255,0.2) 0, transparent 40%),
+      radial-gradient(1px 1px at 40% 80%, rgba(255,255,255,0.2) 0, transparent 40%),
+      radial-gradient(1px 1px at 60% 45%, rgba(255,255,255,0.15) 0, transparent 40%);
+    opacity: 0.6;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container{
+    position: relative;
+    z-index: 2;
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 0 64px;
+  }
+
+  /* NAV */
+  nav{
+    display:flex;
+    align-items:center;
+    justify-content: space-between;
+    padding: 30px 0;
+  }
+  .logo{
+    display:flex;
+    align-items:center;
+    gap: 10px;
+    font-weight: 800;
+    font-size: 19px;
+    letter-spacing: -0.01em;
+  }
+  .logo-mark{
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    background: linear-gradient(140deg, var(--blue-2), #3549d1);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow: 0 4px 14px rgba(79,107,255,0.45);
+  }
+  .logo-mark svg{ width:16px; height:16px; }
+
+  .nav-links{
+    display:flex;
+    gap: 40px;
+    align-items:center;
+  }
+  .nav-links a{
+    font-size: 14.5px;
+    color: #cfd2dc;
+    font-weight: 500;
+    transition: color .15s ease;
+  }
+  .nav-links a:hover{ color: #fff; }
+
+  .nav-right{
+    display:flex;
+    align-items:center;
+    gap: 26px;
+  }
+  .nav-right .login{
+    font-size: 14.5px;
+    font-weight: 500;
+    color: #cfd2dc;
+  }
+  .nav-right .login:hover{ color:#fff; }
+
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    gap: 8px;
+    font-weight: 600;
+    font-size: 14.5px;
+    padding: 11px 20px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+  }
+  .btn-primary{
+    background: linear-gradient(135deg, #5b76ff, #3f56e8);
+    color: #fff;
+    box-shadow: 0 6px 20px rgba(63,90,255,0.35);
+  }
+  .btn-primary:hover{ transform: translateY(-1px); box-shadow: 0 8px 24px rgba(63,90,255,0.5); }
+  .btn-primary svg{ width:15px; height:15px; }
+
+  .btn-outline{
+    background: rgba(255,255,255,0.03);
+    color: #f2f3f7;
+    border: 1px solid var(--line);
+  }
+  .btn-outline:hover{ background: rgba(255,255,255,0.06); }
+
+  /* HERO */
+  .hero{
+    display:grid;
+    grid-template-columns: 1fr 1.28fr;
+    gap: 40px;
+    align-items: center;
+    padding: 60px 0 40px;
+    position: relative;
+  }
+
+  .badge{
+    display:inline-flex;
+    align-items:center;
+    gap: 10px;
+    padding: 7px 8px 7px 8px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--line);
+    font-size: 13.5px;
+    color: #d7d9e2;
+    margin-bottom: 28px;
+  }
+  .badge .pill{
+    background: linear-gradient(135deg, #5b76ff, #3f56e8);
+    color:#fff;
+    font-weight: 700;
+    font-size: 11.5px;
+    padding: 3px 10px;
+    border-radius: 12px;
+    letter-spacing: 0.02em;
+  }
+  .badge svg{ width:12px;height:12px; opacity:0.7; }
+
+  h1.hero-title{
+    font-size: 58px;
+    line-height: 1.08;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #fff;
+    margin-bottom: 22px;
+  }
+  h1.hero-title .accent{
+    background: linear-gradient(100deg, #7f97ff, #4f6bff 60%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .hero-sub{
+    font-size: 16.5px;
+    line-height: 1.65;
+    color: var(--text-dim);
+    max-width: 440px;
+    margin-bottom: 34px;
+  }
+
+  .hero-ctas{
+    display:flex;
+    gap: 14px;
+    margin-bottom: 56px;
+  }
+  .btn-outline svg{ width:14px;height:14px; }
+
+  .features{
+    display:flex;
+    gap: 34px;
+  }
+  .feature{
+    max-width: 165px;
+  }
+  .feature-icon{
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--line);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin-bottom: 14px;
+    color: #9fb0ff;
+  }
+  .feature-icon svg{ width:17px;height:17px; }
+  .feature h4{
+    font-size: 14.5px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #f2f3f7;
+  }
+  .feature p{
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--text-dimmer);
+  }
+
+  /* HERO VISUAL */
+  .hero-visual{
+    position: relative;
+    height: 620px;
+  }
+
+  .comment-card{
+    position:absolute;
+    top: 30px;
+    left: -10px;
+    width: 300px;
+    background: #12151f;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 14px 16px;
+    display:flex;
+    gap: 12px;
+    align-items:flex-start;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    z-index: 5;
+    animation: floatY 6s ease-in-out infinite;
+  }
+  .avatar{
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    flex-shrink:0;
+    background-size: cover;
+    background-position: center;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .comment-card .body{ font-size: 13px; line-height:1.45; }
+  .comment-card .body b{ color:#fff; font-weight:600; }
+  .comment-card .body .sub{ color: var(--text-dimmer); display:block; margin-top:2px; font-size:12px; }
+  .dot-blue{
+    width:7px;height:7px;border-radius:50%;background:#5b7bff;
+    position:absolute; top:16px; right:14px;
+  }
+
+  .avatar-stack{
+    position:absolute;
+    top: 8px;
+    right: 10px;
+    display:flex;
+    align-items:center;
+    background: #12151f;
+    border: 1px solid var(--line);
+    border-radius: 30px;
+    padding: 6px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    z-index: 5;
+  }
+  .avatar-stack .avatar{
+    width: 32px;height:32px;
+    margin-left: -10px;
+    border: 2px solid #12151f;
+  }
+  .avatar-stack .avatar:first-child{ margin-left:0; }
+  .avatar-stack .more{
+    width: 32px;height:32px;
+    margin-left:-10px;
+    border-radius:50%;
+    background:#1c2030;
+    border: 2px solid #12151f;
+    display:flex;align-items:center;justify-content:center;
+    font-size: 12px;font-weight:600;color:#c9cce0;
+  }
+  .stack-dot{
+    position:absolute;
+    bottom: -2px; right: 2px;
+    width:9px;height:9px;
+    border-radius:50%;
+    background: var(--green);
+    border: 2px solid #12151f;
+  }
+  .arrow-connector{
+    position:absolute;
+    top: 92px; right: 90px;
+    width: 60px; height: 60px;
+    color: #4f6bff;
+    opacity: 0.6;
+    z-index: 4;
+  }
+
+  .board-wrap{
+    position:absolute;
+    top: 105px;
+    left: 55px;
+    right: -40px;
+    bottom: 0;
+    perspective: 2200px;
+  }
+  .board{
+    position:relative;
+    height: 100%;
+    background: linear-gradient(155deg, #12151f, #0c0e16);
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 18px;
+    box-shadow: 0 50px 100px -20px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.02);
+    transform: rotateY(-9deg) rotateX(3deg);
+    display:flex;
+    overflow:hidden;
+  }
+
+  .board-side{
+    width: 190px;
+    flex-shrink:0;
+    border-right: 1px solid var(--line-soft);
+    padding: 20px 16px;
+    background: rgba(255,255,255,0.012);
+  }
+  .board-side .brand{
+    display:flex;align-items:center;gap:8px;
+    font-weight:700;font-size:14px;color:#fff;
+    margin-bottom: 26px;
+  }
+  .board-side .brand .logo-mark{ width:22px;height:22px;border-radius:6px; }
+  .board-side .brand .logo-mark svg{ width:11px;height:11px; }
+
+  .side-link{
+    display:flex;align-items:center;gap:10px;
+    font-size: 13px;
+    color: var(--text-dim);
+    padding: 8px 10px;
+    border-radius: 8px;
+    margin-bottom: 2px;
+  }
+  .side-link svg{ width:14px;height:14px; opacity:0.75; }
+  .side-link.active{ background: rgba(255,255,255,0.05); color:#fff; }
+
+  .side-label{
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-dimmer);
+    margin: 20px 0 10px 10px;
+  }
+
+  .board-main{
+    flex:1;
+    padding: 20px 24px;
+    min-width: 0;
+    position:relative;
+  }
+  .board-topbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom: 16px;
+  }
+  .breadcrumb{
+    font-size: 12px;
+    color: var(--text-dimmer);
+    display:flex;align-items:center;gap:6px;
+  }
+  .board-topbar-right{
+    display:flex; gap:8px; align-items:center;
+  }
+  .chip{
+    font-size: 12px;
+    color: #d7d9e2;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--line);
+    padding: 6px 11px;
+    border-radius: 8px;
+    display:flex; align-items:center; gap:6px;
+  }
+  .chip svg{ width:12px;height:12px; }
+  .chip.invite{ background: linear-gradient(135deg, #5b76ff, #3f56e8); color:#fff; border:none; }
+
+  .board-title-row{
+    display:flex; align-items:center; gap:10px;
+    margin-bottom: 18px;
+  }
+  .board-title-row h3{ font-size: 18px; font-weight:700; color:#fff; }
+  .board-title-row .star{ color:#e2b13c; font-size:15px; }
+  .board-title-row .fav{
+    font-size:11.5px; color: var(--text-dimmer);
+    border: 1px solid var(--line);
+    padding: 3px 9px; border-radius: 12px;
+  }
+
+  .columns{
+    display:flex;
+    gap: 14px;
+    overflow: hidden;
+  }
+  .column{ width: 168px; flex-shrink:0; }
+  .column-head{
+    display:flex; align-items:center; justify-content:space-between;
+    font-size: 13px; font-weight:600; color:#e4e6ee;
+    margin-bottom: 10px;
+  }
+  .column-head .count{
+    font-weight: 400; color: var(--text-dimmer); font-size:11.5px; margin-left:4px;
+  }
+  .column-head .plus{
+    color: var(--text-dimmer); font-size:15px;
+  }
+
+  .card{
+    background: #171a26;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 10px;
+    padding: 11px 12px;
+    margin-bottom: 10px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+  }
+  .card .id{
+    font-size: 10.5px; color: var(--text-dimmer); margin-bottom: 6px; display:block;
+  }
+  .card .title{
+    font-size: 12.5px; color: #eef0f6; line-height:1.35; margin-bottom: 9px; font-weight:500;
+  }
+  .card-tags{ display:flex; justify-content:space-between; align-items:center; }
+  .tag{
+    font-size: 10.5px;
+    font-weight:600;
+    padding: 3px 8px;
+    border-radius: 6px;
+    color: #fff;
+  }
+  .tag.electric{ background: #3b5bff; }
+  .tag.design{ background: #6a4fd6; }
+  .tag.medium{ background: #b5762e; }
+  .tag.high{ background: #c24545; }
+  .tag.low{ background: #2b8f5e; }
+
+  .card-meta{ display:flex; align-items:center; gap:6px; }
+  .card-meta .avatar{ width:19px;height:19px; }
+  .card-meta .check{
+    font-size: 10.5px; color: var(--text-dimmer); display:flex; align-items:center; gap:3px;
+  }
+  .avatars-mini{ display:flex; }
+  .avatars-mini .avatar{ width:19px;height:19px; margin-left:-6px; border: 1.5px solid #171a26; }
+  .avatars-mini .avatar:first-child{ margin-left:0; }
+
+  .float-task-card{
+    position: absolute;
+    left: -70px;
+    bottom: 130px;
+    width: 220px;
+    background: #171a26;
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 14px;
+    padding: 16px 16px;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.55);
+    z-index: 6;
+    animation: floatY 7s ease-in-out infinite reverse;
+  }
+  .float-task-card .id{ font-size:11px; color: var(--text-dimmer); margin-bottom:6px; display:block; }
+  .float-task-card .title{ font-size: 14px; font-weight:600; color:#fff; margin-bottom: 12px; }
+  .float-task-card .row{ display:flex; justify-content:space-between; align-items:center; }
+  .float-task-card .date{ font-size: 11.5px; color: var(--text-dim); display:flex; gap:5px; align-items:center; }
+  .float-task-card .check{ font-size: 11.5px; color: var(--text-dim); display:flex; gap:5px; align-items:center; }
+  .float-task-card .avatar{ width:22px;height:22px; }
+  .float-task-card .rowbottom{ display:flex; justify-content:space-between; align-items:center; margin-top:8px; }
+  .float-arrow{ position:absolute; top:-26px; right:30px; width:40px;color:#4f6bff; opacity:0.7; }
+
+  .toast{
+    position:absolute;
+    right: -30px;
+    bottom: 40px;
+    width: 260px;
+    background: #12151f;
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 14px;
+    padding: 14px 16px;
+    display:flex; gap: 12px; align-items:flex-start;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.55);
+    z-index: 6;
+    animation: floatY 6.5s ease-in-out infinite;
+  }
+  .toast-icon{
+    width: 34px;height:34px;border-radius:9px;
+    background: linear-gradient(135deg,#5b76ff,#3f56e8);
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+  }
+  .toast-icon svg{ width:16px;height:16px; color:#fff; }
+  .toast .body{ font-size: 13px; line-height:1.5; }
+  .toast .body b{ font-weight:600; color:#fff; }
+  .toast .body .link{ color: #7d95ff; font-weight:600; }
+  .toast .body .time{ display:block; color: var(--text-dimmer); font-size:11.5px; margin-top:2px; }
+
+  @keyframes floatY{
+    0%,100%{ transform: translateY(0px); }
+    50%{ transform: translateY(-8px); }
+  }
+
+  /* TRUSTED BY */
+  .trusted{
+    padding: 70px 0 90px;
+    text-align:center;
+    position:relative;
+    z-index:2;
+  }
+  .trusted-label{
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    color: var(--text-dimmer);
+    margin-bottom: 32px;
+    font-weight:600;
+  }
+  .logos-row{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap: 56px;
+    flex-wrap: wrap;
+  }
+  .logo-item{
+    display:flex;
+    align-items:center;
+    gap: 9px;
+    color: #767a8a;
+    font-weight: 600;
+    font-size: 16px;
+    opacity: 0.75;
+  }
+  .logo-item svg{ width:19px;height:19px; }
+
+  @media (max-width: 1100px){
+    .hero{ grid-template-columns: 1fr; }
+    .hero-visual{ display:none; }
+    .container{ padding: 0 28px; }
+    h1.hero-title{ font-size: 44px; }
+    .nav-links{ display:none; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="glow"></div>
+  <div class="glow-2"></div>
+  <div class="stars"></div>
+
+  <div class="container">
+    <nav>
+      <div class="logo">
+        <span class="logo-mark">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M4 4h16M4 12h11M4 20h7" stroke="white" stroke-width="2.6" stroke-linecap="round"/></svg>
+        </span>
+        FlowBoard
+      </div>
+      <div class="nav-links">
+        <a href="#">Features</a>
+        <a href="#">Pricing</a>
+        <a href="#">Docs</a>
+        <a href="#">Changelog</a>
+      </div>
+      <div class="nav-right">
+        <a href="#" class="login">Log in</a>
+        <button class="btn btn-primary">Start for free
+          <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </nav>
+
+    <div class="hero">
+      <div class="hero-left">
+        <div class="badge">
+          <span class="pill">New</span>
+          Real-time collaboration is here
+          <svg viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+
+        <h1 class="hero-title">Organize work.<br>Ship products <span class="accent">faster.</span></h1>
+
+        <p class="hero-sub">FlowBoard combines project management, real-time collaboration and smart automation into a beautiful Kanban platform for modern teams.</p>
+
+        <div class="hero-ctas">
+          <button class="btn btn-primary">Start for free
+            <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <button class="btn btn-outline">Live Demo
+            <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/><path d="M10 9l5 3-5 3V9z" fill="currentColor"/></svg>
+          </button>
+        </div>
+
+        <div class="features">
+          <div class="feature">
+            <div class="feature-icon">
+              <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M3 9h18M9 9v11" stroke="currentColor" stroke-width="1.7"/></svg>
+            </div>
+            <h4>Unlimited Boards</h4>
+            <p>Create and manage as many as you need</p>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">
+              <svg viewBox="0 0 24 24" fill="none"><circle cx="9" cy="8" r="3.2" stroke="currentColor" stroke-width="1.7"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.7"/><path d="M16 8.5a3 3 0 100-6 3 3 0 000 6zM21.5 20c0-2.9-2.1-5.3-4.9-5.9" stroke="currentColor" stroke-width="1.7"/></svg>
+            </div>
+            <h4>Real-time Collaboration</h4>
+            <p>Work together with your team, instantly</p>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M12 3a5 5 0 00-5 5v3.5c0 .8-.3 1.6-.9 2.2L4.5 15.5A1 1 0 005.2 17h13.6a1 1 0 00.7-1.7l-1.6-1.8a3 3 0 01-.9-2.2V8a5 5 0 00-5-5z" stroke="currentColor" stroke-width="1.6"/><path d="M9.5 20a2.5 2.5 0 005 0" stroke="currentColor" stroke-width="1.6"/></svg>
+            </div>
+            <h4>Smart Notifications</h4>
+            <p>Stay updated with what matters most</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+
+        <div class="comment-card">
+          <div class="dot-blue"></div>
+          <div class="avatar" style="background-image:url('https://i.pravatar.cc/80?img=47')"></div>
+          <div class="body">
+            <b>Danen Saana</b> commented
+            <span class="sub">on Finalize UI Kit for Settings</span>
+            <span class="sub" style="margin-top:6px;">2m ago</span>
+          </div>
+        </div>
+
+        <div class="avatar-stack">
+          <div class="avatar" style="background-image:url('https://i.pravatar.cc/80?img=32')"></div>
+          <div class="avatar" style="background-image:url('https://i.pravatar.cc/80?img=12')"></div>
+          <div class="avatar" style="background-image:url('https://i.pravatar.cc/80?img=15');position:relative;">
+            <span class="stack-dot"></span>
+          </div>
+          <div class="more">+3</div>
+        </div>
+
+        <svg class="arrow-connector" viewBox="0 0 60 60" fill="none">
+          <path d="M50 6C42 6 20 14 12 40" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="1 6"/>
+          <path d="M6 34L11 44L20 40" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+
+        <div class="board-wrap">
+          <div class="board">
+            <div class="board-side">
+              <div class="brand">
+                <span class="logo-mark"><svg viewBox="0 0 24 24" fill="none"><path d="M4 4h16M4 12h11M4 20h7" stroke="white" stroke-width="2.6" stroke-linecap="round"/></svg></span>
+                FlowBoard
+              </div>
+              <div class="side-link active"><svg viewBox="0 0 24 24" fill="none"><path d="M3 11l9-7 9 7M5 10v9a1 1 0 001 1h4v-6h4v6h4a1 1 0 001-1v-9" stroke="currentColor" stroke-width="1.7"/></svg> Home</div>
+              <div class="side-link"><svg viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.7"/><rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.7"/></svg> My Tasks</div>
+              <div class="side-link"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3a4 4 0 014 4v3a4 4 0 01-8 0V7a4 4 0 014-4zM6 21c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.6"/></svg> Notifications</div>
+
+              <div class="side-label">Pinned boards</div>
+              <div class="side-link active"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.7"/></svg> Product Launch v2</div>
+              <div class="side-link"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.7"/></svg> Engineering Backlog</div>
+              <div class="side-link"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.7"/></svg> Marketing Campaigns</div>
+              <div class="side-link"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.7"/></svg> Mobile App Redesign</div>
+              <div class="side-link" style="margin-top:6px;">+ Add board</div>
+            </div>
+
+            <div class="board-main">
+              <div class="board-topbar">
+                <div class="breadcrumb">Board / Product Launch v2</div>
+                <div class="board-topbar-right">
+                  <div class="chip invite"><svg viewBox="0 0 24 24" fill="none"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM19 8v6M22 11h-6" stroke="white" stroke-width="1.8"/></svg> Invite</div>
+                  <div class="chip">Board</div>
+                  <div class="chip">List</div>
+                  <div class="chip">Calendar</div>
+                </div>
+              </div>
+
+              <div class="board-title-row">
+                <h3>Product Launch v2</h3>
+                <span class="star">★</span>
+                <span class="fav">Favorite</span>
+              </div>
+
+              <div class="columns">
+                <div class="column">
+                  <div class="column-head">Backlog <span class="count">3 cards</span><span class="plus">+</span></div>
+                  <div class="card">
+                    <span class="id">FB-129</span>
+                    <div class="title">Refactor Auth Flow</div>
+                    <div class="card-tags"><span class="tag electric">Electric Blue</span><div class="avatar" style="width:19px;height:19px;background-image:url('https://i.pravatar.cc/60?img=5')"></div></div>
+                  </div>
+                  <div class="card">
+                    <span class="id">FB-130</span>
+                    <div class="title">Finalize UI Kit for Settings</div>
+                    <div class="card-tags"><span class="tag medium">Medium</span><div class="avatar" style="width:19px;height:19px;background-image:url('https://i.pravatar.cc/60?img=8')"></div></div>
+                  </div>
+                  <div class="card">
+                    <span class="id">FB-131</span>
+                    <div class="title">Improve Onboarding Experience</div>
+                    <div class="card-tags"><span class="tag low">Low</span><span></span></div>
+                  </div>
+                </div>
+
+                <div class="column">
+                  <div class="column-head">Todo <span class="count">2 cards</span><span class="plus">+</span></div>
+                  <div class="card">
+                    <span class="id">FB-132</span>
+                    <div class="title">Dashboard Redesign</div>
+                    <div class="card-tags"><span class="tag design">Design</span></div>
+                    <div class="card-meta" style="margin-top:8px;justify-content:space-between;">
+                      <div class="avatars-mini"><div class="avatar" style="background-image:url('https://i.pravatar.cc/60?img=9')"></div><div class="avatar" style="background-image:url('https://i.pravatar.cc/60?img=10')"></div></div>
+                    </div>
+                  </div>
+                  <div class="card">
+                    <span class="id">FB-133</span>
+                    <div class="title">Implement Notifications</div>
+                    <div class="card-meta" style="justify-content:space-between;margin-top:4px;">
+                      <div class="avatar" style="width:19px;height:19px;background-image:url('https://i.pravatar.cc/60?img=11')"></div>
+                      <span class="check">☑ 2/5</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="column">
+                  <div class="column-head">In Progress <span class="count">3 cards</span><span class="plus">+</span></div>
+                  <div class="card">
+                    <span class="id">FB-134</span>
+                    <div class="title">API Rate Limiting</div>
+                    <div class="card-tags"><span class="tag high">High</span></div>
+                    <div class="card-meta" style="justify-content:space-between;margin-top:8px;">
+                      <div class="avatar" style="width:19px;height:19px;background-image:url('https://i.pravatar.cc/60?img=13')"></div>
+                      <span class="check">☑ 2/3</span>
+                    </div>
+                  </div>
+                  <div class="card">
+                    <span class="id">FB-135</span>
+                    <div class="title">Add Activity Timeline</div>
+                    <div class="card-tags"><span class="tag medium">Medium</span></div>
+                    <div class="card-meta" style="justify-content:space-between;margin-top:8px;">
+                      <div class="avatar" style="width:19px;height:19px;background-image:url('https://i.pravatar.cc/60?img=14')"></div>
+                      <span class="check">☑ 1/4</span>
+                    </div>
+                  </div>
+                  <div class="card">
+                    <span class="id">FB-136</span>
+                    <div class="title">File Attachments</div>
+                    <div class="card-tags"><span class="tag low">Low</span></div>
+                    <div class="card-meta" style="justify-content:space-between;margin-top:8px;">
+                      <div class="avatar" style="width:19px;height:19px;background-image:url('https://i.pravatar.cc/60?img=16')"></div>
+                      <span class="check">☑ 0/3</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="column">
+                  <div class="column-head">Review <span class="count">2 cards</span><span class="plus">+</span></div>
+                  <div class="card">
+                    <span class="id">FB-137</span>
+                    <div class="title">Mobile Responsiveness</div>
+                    <div class="card-tags"><span class="tag design">Design</span></div>
+                    <div class="card-meta" style="justify-content:space-between;margin-top:8px;">
+                      <div class="avatars-mini"><div class="avatar" style="background-image:url('https://i.pravatar.cc/60?img=18')"></div><div class="avatar" style="background-image:url('https://i.pravatar.cc/60?img=19')"></div></div>
+                      <span class="check">☑ 2/2</span>
+                    </div>
+                  </div>
+                  <div class="card">
+                    <span class="id">FB-138</span>
+                    <div class="title">Performance Optimization</div>
+                    <div class="card-tags"><span class="tag high">High</span></div>
+                    <div class="card-meta" style="justify-content:space-between;margin-top:8px;">
+                      <div class="avatar" style="width:19px;height:19px;background-image:url('https://i.pravatar.cc/60?img=20')"></div>
+                      <span class="check">☑ 1/3</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="column">
+                  <div class="column-head">Done <span class="count">2 cards</span><span class="plus">+</span></div>
+                  <div class="card">
+                    <span class="id">FB-139</span>
+                    <div class="title">Seed Data</div>
+                    <div class="card-tags"><span class="tag low">Low</span><div class="avatar" style="width:19px;height:19px;background-image:url('https://i.pravatar.cc/60?img=21')"></div></div>
+                  </div>
+                  <div class="card">
+                    <span class="id">FB-140</span>
+                    <div class="title">Fix Board Actions</div>
+                    <div class="card-tags"><span class="tag low">Low</span></div>
+                    <div class="card-meta" style="justify-content:space-between;margin-top:8px;">
+                      <div class="avatar" style="width:19px;height:19px;background-image:url('https://i.pravatar.cc/60?img=23')"></div>
+                      <span class="check">☑ 2/2</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div style="margin-top:20px;font-size:12px;color:var(--text-dimmer);display:flex;align-items:center;gap:6px;">
+                <svg viewBox="0 0 24 24" fill="none" width="13" height="13"><path d="M12 8v4l3 3M21 12a9 9 0 11-9-9" stroke="currentColor" stroke-width="1.8"/></svg>
+                Settings
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="float-task-card">
+          <svg class="float-arrow" viewBox="0 0 40 30" fill="none"><path d="M35 26C28 12 15 4 3 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="1 5"/><path d="M3 4L1 12M3 4l9 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span class="id">FB-135</span>
+          <div class="title">Add Activity Timeline</div>
+          <div class="rowbottom">
+            <span class="date"><svg viewBox="0 0 24 24" width="13" height="13" fill="none"><rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.7"/></svg> Oct 12</span>
+            <span class="check">☑ 1/4</span>
+            <div class="avatar" style="width:22px;height:22px;background-image:url('https://i.pravatar.cc/60?img=25')"></div>
+          </div>
+        </div>
+
+        <div class="toast">
+          <div class="toast-icon">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="body">
+            Task moved to <span class="link">Review</span><br>
+            by Maria
+            <span class="time">Just now</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="trusted">
+      <div class="trusted-label">TRUSTED BY MODERN TEAMS</div>
+      <div class="logos-row">
+        <div class="logo-item"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l9 18H3z"/></svg> Acme Corp</div>
+        <div class="logo-item"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2 8 8 2-8 2-2 8-2-8-8-2 8-2z"/></svg> Artifact</div>
+        <div class="logo-item"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l10 10-10 10L2 12z"/></svg> Pulse Labs</div>
+        <div class="logo-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg> Echo</div>
+        <div class="logo-item"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M2 20L12 3l10 17z"/></svg> Vertice</div>
+        <div class="logo-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"/></svg> Sisyphus</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

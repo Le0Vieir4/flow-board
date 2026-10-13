@@ -1,0 +1,136 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-27T00:00:00.000Z",
+  "title": "Design System: FlowBoard",
+  "extensions": {
+    "colorMeta": {
+      "neutral-bg": { "role": "neutral", "displayName": "Void", "canonical": "#05070d", "tonalRamp": ["#05070d", "#060912", "#070a13", "#0b0e19", "#10131c", "#12151f", "#171a26", "#1c2033"] },
+      "neutral-bg-2": { "role": "neutral", "displayName": "Void-2", "canonical": "#070a13", "tonalRamp": [] },
+      "neutral-panel": { "role": "neutral", "displayName": "Panel", "canonical": "#10131c", "tonalRamp": [] },
+      "neutral-panel-2": { "role": "neutral", "displayName": "Panel-2", "canonical": "#12151f", "tonalRamp": [] },
+      "neutral-card": { "role": "neutral", "displayName": "Card", "canonical": "#171a26", "tonalRamp": [] },
+      "neutral-foreground": { "role": "neutral", "displayName": "Foreground", "canonical": "#f2f3f7", "tonalRamp": [] },
+      "neutral-muted": { "role": "neutral", "displayName": "Muted", "canonical": "#9a9fae", "tonalRamp": [] },
+      "neutral-muted-foreground": { "role": "neutral", "displayName": "Muted-Foreground", "canonical": "#6b7080", "tonalRamp": [] },
+      "primary-blue": { "role": "primary", "displayName": "Signal Blue", "canonical": "#4f6bff", "tonalRamp": ["#1a2b8a", "#2a3fbf", "#3a56ff", "#4f6bff", "#6d8bff", "#8fa6ff", "#b3c2ff", "#d9e0ff"] },
+      "primary-blue-light": { "role": "primary", "displayName": "Signal Blue Light", "canonical": "#6d8bff", "tonalRamp": [] },
+      "primary-blue-glow": { "role": "primary", "displayName": "Signal Blue Glow", "canonical": "#3a56ff", "tonalRamp": [] },
+      "semantic-success": { "role": "tertiary", "displayName": "Success Green", "canonical": "#34c77b", "tonalRamp": [] },
+      "semantic-warning": { "role": "tertiary", "displayName": "Warning Amber", "canonical": "#e2924a", "tonalRamp": [] },
+      "semantic-secondary": { "role": "secondary", "displayName": "Secondary Purple", "canonical": "#8b6cf5", "tonalRamp": [] },
+      "tag-electric": { "role": "custom", "displayName": "Tag Electric Blue", "canonical": "#3b5bff", "tonalRamp": [] },
+      "tag-design": { "role": "custom", "displayName": "Tag Design Purple", "canonical": "#6a4fd6", "tonalRamp": [] },
+      "tag-medium": { "role": "custom", "displayName": "Tag Medium Amber", "canonical": "#b5762e", "tonalRamp": [] },
+      "tag-high": { "role": "custom", "displayName": "Tag High Red", "canonical": "#c24545", "tonalRamp": [] },
+      "tag-low": { "role": "custom", "displayName": "Tag Low Green", "canonical": "#2b8f5e", "tonalRamp": [] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Hero headlines only. Tight tracking, heaviest weight." },
+      "headline": { "displayName": "Headline", "purpose": "Section titles, board names, modal headings." },
+      "title": { "displayName": "Title", "purpose": "Card titles, feature labels, nav text." },
+      "body": { "displayName": "Body", "purpose": "Paragraph text, descriptions. Max 75ch." },
+      "label": { "displayName": "Label", "purpose": "Buttons, tags, badges, metadata." }
+    },
+    "shadows": [
+      { "name": "card", "value": "0 8px 20px rgba(0,0,0,0.25)", "purpose": "Default task cards in the board view." },
+      { "name": "elevated", "value": "0 20px 40px rgba(0,0,0,0.4)", "purpose": "Floating UI elements (comment card, avatar stack)." },
+      { "name": "modal", "value": "0 30px 60px rgba(0,0,0,0.55)", "purpose": "High-elevation elements (toast notifications, floating cards)." },
+      { "name": "button-glow", "value": "0 6px 20px rgba(63,90,255,0.35)", "purpose": "Primary buttons — colored shadow tied to the blue glow." },
+      { "name": "board", "value": "0 50px 100px -20px rgba(0,0,0,0.65)", "purpose": "Hero board mockup — deepest shadow in the system." }
+    ],
+    "motion": [
+      { "name": "state-transition", "value": "150ms ease", "purpose": "Default easing for state transitions (hover, focus, color changes)." },
+      { "name": "float-y", "value": "6s ease-in-out infinite", "purpose": "Ambient float animation for notification/ambient elements." }
+    ],
+    "breakpoints": [
+      { "name": "collapse", "value": "1100px", "purpose": "Hero collapses to single column, nav links hidden, container padding shrinks." }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The single primary action per viewport. Gradient-filled with blue glow shadow.",
+      "html": "<button class=\"ds-btn-primary\">Start for free <svg width=\"15\" height=\"15\" viewBox=\"0 0 24 24\" fill=\"none\"><path d=\"M5 12h14M13 6l6 6-6 6\" stroke=\"white\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg></button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; gap: 8px; font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; font-weight: 600; font-size: 14.5px; padding: 11px 20px; border-radius: 10px; border: none; cursor: pointer; background: linear-gradient(135deg, #5b76ff, #3f56e8); color: #fff; box-shadow: 0 6px 20px rgba(63,90,255,0.35); transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease; } .ds-btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(63,90,255,0.5); } .ds-btn-primary svg { width: 15px; height: 15px; }"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Secondary action button. Subtle background with line border.",
+      "html": "<button class=\"ds-btn-outline\">Live Demo <svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\"><circle cx=\"12\" cy=\"12\" r=\"9\" stroke=\"currentColor\" stroke-width=\"1.6\"/><path d=\"M10 9l5 3-5 3V9z\" fill=\"currentColor\"/></svg></button>",
+      "css": ".ds-btn-outline { display: inline-flex; align-items: center; gap: 8px; font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; font-weight: 600; font-size: 14.5px; padding: 11px 20px; border-radius: 10px; cursor: pointer; background: rgba(255,255,255,0.03); color: #f2f3f7; border: 1px solid rgba(255,255,255,0.08); transition: background 0.15s ease, transform 0.15s ease; } .ds-btn-outline:hover { background: rgba(255,255,255,0.06); } .ds-btn-outline svg { width: 14px; height: 14px; }"
+    },
+    {
+      "name": "Task Card",
+      "kind": "card",
+      "refersTo": "card-default",
+      "description": "Kanban task card in a board column. Dark surface with ID, title, and metadata row.",
+      "html": "<div class=\"ds-card\"><span class=\"ds-card-id\">FB-129</span><div class=\"ds-card-title\">Refactor Auth Flow</div><div class=\"ds-card-footer\"><span class=\"ds-tag ds-tag-electric\">Electric Blue</span><div class=\"ds-avatar\" style=\"background-image:url('https://i.pravatar.cc/60?img=5')\"></div></div></div>",
+      "css": ".ds-card { background: #171a26; border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 11px 12px; margin-bottom: 10px; box-shadow: 0 8px 20px rgba(0,0,0,0.25); font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; } .ds-card-id { font-size: 10.5px; color: #6b7080; display: block; margin-bottom: 6px; } .ds-card-title { font-size: 12.5px; color: #eef0f6; line-height: 1.35; margin-bottom: 9px; font-weight: 500; } .ds-card-footer { display: flex; justify-content: space-between; align-items: center; } .ds-tag { font-size: 10.5px; font-weight: 600; padding: 3px 8px; border-radius: 6px; color: #fff; } .ds-tag-electric { background: #3b5bff; } .ds-avatar { width: 19px; height: 19px; border-radius: 50%; background-size: cover; background-position: center; }"
+    },
+    {
+      "name": "Tag",
+      "kind": "chip",
+      "refersTo": "tag",
+      "description": "Metadata tag used on board cards for priority and category classification.",
+      "html": "<span class=\"ds-tag ds-tag-high\">High</span>",
+      "css": ".ds-tag { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; font-size: 10.5px; font-weight: 600; padding: 3px 8px; border-radius: 6px; color: #fff; display: inline-block; } .ds-tag-high { background: #c24545; } .ds-tag-medium { background: #b5762e; } .ds-tag-low { background: #2b8f5e; } .ds-tag-electric { background: #3b5bff; } .ds-tag-design { background: #6a4fd6; }"
+    },
+    {
+      "name": "Badge (Hero Pill)",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "Feature announcement badge in the hero section. Contains a gradient 'New' pill and text label.",
+      "html": "<div class=\"ds-badge\"><span class=\"ds-badge-new\">New</span>Real-time collaboration is here<svg width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\"><path d=\"M9 6l6 6-6 6\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg></div>",
+      "css": ".ds-badge { display: inline-flex; align-items: center; gap: 10px; padding: 7px 8px 7px 8px; border-radius: 20px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; font-size: 13.5px; color: #d7d9e2; } .ds-badge-new { background: linear-gradient(135deg, #5b76ff, #3f56e8); color: #fff; font-weight: 700; font-size: 11.5px; padding: 3px 10px; border-radius: 12px; letter-spacing: 0.02em; } .ds-badge svg { width: 12px; height: 12px; opacity: 0.7; }"
+    },
+    {
+      "name": "Navigation Bar",
+      "kind": "nav",
+      "refersTo": null,
+      "description": "Top navigation bar with logo, center links, and right-side auth/CTA.",
+      "html": "<nav class=\"ds-nav\"><div class=\"ds-nav-logo\"><span class=\"ds-logo-mark\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\"><path d=\"M4 4h16M4 12h11M4 20h7\" stroke=\"white\" stroke-width=\"2.6\" stroke-linecap=\"round\"/></svg></span>FlowBoard</div><div class=\"ds-nav-links\"><a href=\"#\">Features</a><a href=\"#\">Pricing</a><a href=\"#\">Docs</a><a href=\"#\">Changelog</a></div><div class=\"ds-nav-right\"><a href=\"#\" class=\"ds-nav-login\">Log in</a><button class=\"ds-btn-primary\">Start for free<svg width=\"15\" height=\"15\" viewBox=\"0 0 24 24\" fill=\"none\"><path d=\"M5 12h14M13 6l6 6-6 6\" stroke=\"white\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg></button></div></nav>",
+      "css": ".ds-nav { display: flex; align-items: center; justify-content: space-between; padding: 30px 0; font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; } .ds-nav-logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 19px; letter-spacing: -0.01em; color: #f2f3f7; } .ds-logo-mark { width: 34px; height: 34px; border-radius: 9px; background: linear-gradient(140deg, #6d8bff, #3549d1); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(79,107,255,0.45); } .ds-nav-links { display: flex; gap: 40px; } .ds-nav-links a { font-size: 14.5px; color: #cfd2dc; font-weight: 500; text-decoration: none; transition: color 0.15s ease; } .ds-nav-links a:hover { color: #fff; } .ds-nav-right { display: flex; align-items: center; gap: 26px; } .ds-nav-login { font-size: 14.5px; font-weight: 500; color: #cfd2dc; text-decoration: none; } .ds-nav-login:hover { color: #fff; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Observatory",
+    "overview": "FlowBoard's visual system is a night-time observatory — a deep, immersive dark canvas where focused beams of light reveal structure and activity. The near-black background (#05070d) creates an infinite void; everything that matters sits on elevated panel surfaces that feel like floating instrument consoles. Blue primary accents act as guide lights — they're the brand's voice, not decorative noise.\n\nThe system is dark-mode-first by commitment (no light mode). Surfaces are stacked through tonal layering rather than heavy shadows: background → bg-2 → panel → panel-2 → card, each step a slightly lighter shade of near-black. Shadows are reserved for floating elements that need to lift above the stack — cards, modals, toasts.",
+    "keyCharacteristics": [
+      "Deep-space dark background as the canvas, not a mode switch",
+      "Blue-primary light sources (gradient buttons, glowing accents, floating UI elements)",
+      "Tonal surface stacking for depth instead of heavy shadow use",
+      "Ambient glow and subtle starfield texture for atmosphere",
+      "Float animations on interactive/notification elements for ambient motion",
+      "Generous border radius (14px surfaces, 10px cards) for approachability",
+      "Typography is crisp and large — Inter at heavy weights drives hierarchy",
+      "Color tags (electric, design, high, medium, low) as the primary metadata system"
+    ],
+    "rules": [
+      { "name": "The Single Light Source Rule", "body": "The blue gradient appears on exactly one interactive element per viewport — usually the primary CTA. A second blue element must be noticeably less luminous (flat blue, not gradient).", "section": "colors" },
+      { "name": "The No-Gray-On-Surface Rule", "body": "Secondary text on colored surfaces is tinted from the surface hue, not desaturated to gray. On panel backgrounds, muted text (#9a9fae) carries a slight blue cast from the #10131c foundation.", "section": "colors" },
+      { "name": "The Weight-Only Hierarchy Rule", "body": "Hierarchy is expressed through weight and size, never through font switching, color changes, or text decoration.", "section": "typography" },
+      { "name": "The 1100 Breakpoint Rule", "body": "All responsive layout changes collapse at 1100px. Below this: the hero visual hides, nav links collapse, container padding shrinks, and the hero title scales down from 58px to 44px.", "section": "layout" },
+      { "name": "The Flat-By-Default Rule", "body": "Surfaces at rest are flat. Shadows appear only as elevation signals — cards don't cast shadows in a column; they only cast shadows when they float above the board (toasts, comment cards, modals).", "section": "elevation" },
+      { "name": "The Generous Curve Rule", "body": "Every rectilinear element has a visible radius. The smallest radius (6px) is still noticeable — nothing is squared off.", "section": "shapes" }
+    ],
+    "dos": [
+      "Do use the tonal surface stack (bg → bg-2 → panel → panel-2 → card) for depth instead of shadows",
+      "Do apply the blue gradient to exactly one primary action per viewport",
+      "Do use generous border radius (14px for panels, 10px for cards) on all rectilinear surfaces",
+      "Do keep the float animation limited to notification/ambient elements only",
+      "Do use Inter weight contrast (800 vs 400) as the primary hierarchy mechanism"
+    ],
+    "donts": [
+      "Don't introduce a light mode or light-themed variant",
+      "Don't use sharp 0px corners — every surface must have visible rounding",
+      "Don't add shadows to in-flow cards — shadows are for elevated/floating elements only",
+      "Don't use gradient text outside the hero headline's single-word accent",
+      "Don't add a second accent color that competes with Signal Blue",
+      "Don't use glass, backdrop-filter blur, or frosted-glass effects as decoration"
+    ]
+  }
+}

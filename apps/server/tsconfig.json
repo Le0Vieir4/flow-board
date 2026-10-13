@@ -1,0 +1,26 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "target": "ES2021",
+    "esModuleInterop": true,
+    "rootDir": "./src",
+    "skipLibCheck": true,
+    "isolatedDeclarations": false,
+
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "noEmit": false,
+
+    "declaration": true,
+    "sourceMap": true,
+    "removeComments": true,
+
+    "outDir": "./dist",
+
+    "incremental": true
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["src/test/**", "**/*.spec.ts"]
+}

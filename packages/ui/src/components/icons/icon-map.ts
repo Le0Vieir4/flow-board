@@ -1,0 +1,53 @@
+import {
+  HomeIcon,
+  ListTodoIcon as TasksIcon,
+  BellIcon,
+  KanbanIcon as BoardIcon,
+  PlusIcon,
+  StarIcon,
+  MoreHorizontalIcon as MoreIcon,
+  XIcon as CloseIcon,
+  PencilIcon,
+  Trash2Icon as TrashIcon,
+  ClockIcon,
+  ListChecksIcon as ChecklistIcon,
+  CheckIcon,
+  UserPlusIcon as InviteIcon,
+  LayoutGridIcon as GridIcon,
+  ListIcon,
+  CalendarIcon,
+  ChevronRightIcon,
+  SendIcon,
+  MenuIcon,
+  LogOutIcon as LogoutIcon,
+  UsersIcon,
+} from 'lucide-react';
+import type { IconProps } from './types';
+
+export const iconMap = {
+  HomeIcon,
+  TasksIcon,
+  BellIcon,
+  BoardIcon,
+  PlusIcon,
+  StarIcon,
+  MoreIcon,
+  CloseIcon,
+  PencilIcon,
+  TrashIcon,
+  ClockIcon,
+  ChecklistIcon,
+  CheckIcon,
+  InviteIcon,
+  GridIcon,
+  ListIcon,
+  CalendarIcon,
+  ChevronRightIcon,
+  SendIcon,
+  MenuIcon,
+  LogoutIcon,
+  UsersIcon,
+} as const;
+
+export type IconName = keyof typeof iconMap;
+export type { IconProps };

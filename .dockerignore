@@ -1,0 +1,19 @@
+# Build outputs only (source is bind-mounted)
+dist
+.next
+.turbo
+
+# Don't copy host node_modules
+node_modules
+.pnpm-store
+
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+
+# OS
+.DS_Store

@@ -1,0 +1,53 @@
+{
+  "id": "7df436f2",
+  "phase": "completed",
+  "pageUrl": "/",
+  "sourceFile": "src/app/page.tsx",
+  "previewFile": null,
+  "previewMode": null,
+  "expectedVariants": 3,
+  "arrivedVariants": 3,
+  "visibleVariant": 1,
+  "paramValues": {},
+  "pendingEventSeq": null,
+  "pendingEvent": null,
+  "deliveryLease": null,
+  "checkpointRevision": 6,
+  "browserCheckpointRevision": 6,
+  "publicationCheckpointRevision": 0,
+  "activeOwner": "29bee903",
+  "sourceMarkers": {},
+  "fallbackMode": null,
+  "generationPhase": "generation_ready",
+  "generationCompletedAt": 1785194345710,
+  "generationTimings": {
+    "picked_up": {
+      "at": 1785194311541,
+      "durationMs": null
+    },
+    "scaffolding": {
+      "at": 1785194311542,
+      "durationMs": null
+    },
+    "scaffold_fallback": {
+      "at": 1785194311752,
+      "durationMs": 209.30816999997478
+    },
+    "generation_ready": {
+      "at": 1785194311754,
+      "durationMs": null
+    }
+  },
+  "variantPlan": null,
+  "generationCanceled": true,
+  "generationCanceledAt": 1785194367000,
+  "cancelReason": "discard",
+  "annotationArtifacts": [],
+  "diagnostics": [
+    {
+      "error": "agent_error",
+      "message": "Markers not found"
+    }
+  ],
+  "updatedAt": "2026-07-27T23:19:54.297Z"
+}

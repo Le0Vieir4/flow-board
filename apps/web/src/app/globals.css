@@ -1,0 +1,156 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-bg: #05070d;
+  --color-bg-2: #070a13;
+  --color-panel: #10131c;
+  --color-panel-2: #12151f;
+  --color-card: #171a26;
+  --color-field: #0d0f18;
+  --color-foreground: #f2f3f7;
+  --color-muted: #9a9fae;
+  --color-muted-foreground: #7a8090;
+  --color-primary: #4f6bff;
+  --color-primary-2: #6d8bff;
+  --color-primary-glow: #3a56ff;
+  --color-success: #34c77b;
+  --color-warning: #e2924a;
+  --color-error: #e5484d;
+  --color-secondary: #8b6cf5;
+  --color-link: #8fa3ff;
+  --color-star: #e2b13c;
+  --color-label: #d7d9e2;
+  --color-line: rgba(255, 255, 255, 0.08);
+  --color-line-soft: rgba(255, 255, 255, 0.06);
+  --color-tag-electric: #3b5bff;
+  --color-tag-design: #6a4fd6;
+  --color-tag-medium: #9c6327;
+  --color-tag-high: #c24545;
+  --color-tag-low: #217a4d;
+  --color-glow-primary: rgba(63, 90, 255, 0.30);
+  --color-glow-secondary: rgba(63, 90, 255, 0.10);
+  --color-glow-tertiary: rgba(63, 90, 255, 0.16);
+  --shadow-card: 0 8px 20px rgba(0, 0, 0, 0.25);
+  --shadow-elevated: 0 20px 40px rgba(0, 0, 0, 0.4);
+  --shadow-modal: 0 30px 60px rgba(0, 0, 0, 0.55);
+  --shadow-button: 0 6px 20px rgba(63, 90, 255, 0.35);
+  --shadow-board: 0 50px 100px -20px rgba(0, 0, 0, 0.65);
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --radius: 14px;
+  --radius-card: 10px;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.08) transparent;
+}
+
+:where(a, button, input[type="checkbox"], input[type="radio"], [role="button"]):focus-visible {
+  outline: 2px solid var(--color-primary-2);
+  outline-offset: 2px;
+}
+
+@keyframes float-y {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+.animate-float {
+  animation: float-y 6s ease-in-out infinite;
+}
+
+.animate-float-reverse {
+  animation: float-y 7s ease-in-out infinite reverse;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-toast-in {
+  animation: toast-in 260ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes count-bump {
+  0% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.35);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-count-bump {
+  animation: count-bump 300ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-toast-in,
+  .animate-count-bump {
+    animation: none;
+  }
+}
+
+/* Observatory atmosphere — glow + starfield */
+.globe-glow-primary {
+  position: absolute;
+  top: -120px;
+  right: -220px;
+  width: 1100px;
+  height: 1100px;
+  background: radial-gradient(circle at 50% 50%, var(--color-glow-primary), var(--color-glow-secondary) 40%, transparent 70%);
+  filter: blur(10px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.globe-glow-secondary {
+  position: absolute;
+  top: 260px;
+  left: -260px;
+  width: 700px;
+  height: 700px;
+  background: radial-gradient(circle, var(--color-glow-secondary), transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.globe-starfield {
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.35) 0, transparent 40%),
+    radial-gradient(1px 1px at 70% 15%, rgba(255,255,255,0.25) 0, transparent 40%),
+    radial-gradient(1px 1px at 85% 60%, rgba(255,255,255,0.2) 0, transparent 40%),
+    radial-gradient(1px 1px at 40% 80%, rgba(255,255,255,0.2) 0, transparent 40%),
+    radial-gradient(1px 1px at 60% 45%, rgba(255,255,255,0.15) 0, transparent 40%);
+  opacity: 0.6;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .globe-glow-primary,
+  .globe-glow-secondary,
+  .globe-starfield {
+    animation: none;
+    opacity: 0.3;
+  }
+}

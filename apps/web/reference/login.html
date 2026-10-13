@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Log in — FlowBoard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #05070d;
+    --panel: #10131c;
+    --panel-2: #12151f;
+    --field: #0d0f18;
+    --line: rgba(255,255,255,0.08);
+    --line-soft: rgba(255,255,255,0.06);
+    --text: #f2f3f7;
+    --text-dim: #9a9fae;
+    --text-dimmer: #6b7080;
+    --blue: #4f6bff;
+    --blue-2: #6d8bff;
+    --green: #34c77b;
+    --orange: #e2924a;
+    --purple: #8b6cf5;
+  }
+
+  *{margin:0;padding:0;box-sizing:border-box;}
+
+  html,body{
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+
+  a{color:inherit;text-decoration:none;}
+
+  .screen{
+    display:grid;
+    grid-template-columns: 1.05fr 1fr;
+    min-height: 100vh;
+  }
+
+  /* ---------- LEFT: BRAND / VISUAL PANEL ---------- */
+  .brand-panel{
+    position: relative;
+    background: var(--bg);
+    overflow: hidden;
+    display:flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 48px 56px;
+    border-right: 1px solid var(--line);
+  }
+  .glow{
+    position: absolute;
+    top: -160px;
+    left: -160px;
+    width: 900px;
+    height: 900px;
+    background: radial-gradient(circle at 50% 50%, rgba(63,90,255,0.28), rgba(63,90,255,0.09) 40%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .glow-2{
+    position:absolute;
+    bottom: -220px;
+    right: -160px;
+    width: 640px;
+    height: 640px;
+    background: radial-gradient(circle, rgba(139,108,245,0.14), transparent 70%);
+    pointer-events:none;
+    z-index:0;
+  }
+  .stars{
+    position:absolute;
+    inset:0;
+    background-image:
+      radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.35) 0, transparent 40%),
+      radial-gradient(1px 1px at 70% 15%, rgba(255,255,255,0.25) 0, transparent 40%),
+      radial-gradient(1px 1px at 85% 60%, rgba(255,255,255,0.2) 0, transparent 40%),
+      radial-gradient(1px 1px at 40% 80%, rgba(255,255,255,0.2) 0, transparent 40%),
+      radial-gradient(1px 1px at 60% 45%, rgba(255,255,255,0.15) 0, transparent 40%);
+    opacity: 0.6;
+    pointer-events: none;
+  }
+
+  .logo{
+    position: relative;
+    z-index:2;
+    display:flex;
+    align-items:center;
+    gap: 10px;
+    font-weight: 800;
+    font-size: 19px;
+    letter-spacing: -0.01em;
+  }
+  .logo-mark{
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    background: linear-gradient(140deg, var(--blue-2), #3549d1);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow: 0 4px 14px rgba(79,107,255,0.45);
+    flex-shrink:0;
+  }
+  .logo-mark svg{ width:16px; height:16px; }
+
+  .brand-copy{
+    position: relative;
+    z-index: 2;
+    max-width: 420px;
+  }
+  .brand-copy h1{
+    font-size: 34px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.18;
+    margin-bottom: 14px;
+  }
+  .brand-copy h1 .accent{
+    background: linear-gradient(100deg, #7f97ff, #4f6bff 60%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .brand-copy p{
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--text-dim);
+  }
+
+  /* floating preview card, echoes the landing hero board */
+  .preview-wrap{
+    position: relative;
+    z-index: 2;
+    margin-top: 40px;
+  }
+  .preview-card{
+    background: linear-gradient(155deg, #12151f, #0c0e16);
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 16px;
+    padding: 18px 20px;
+    box-shadow: 0 40px 90px -20px rgba(0,0,0,0.6);
+    max-width: 420px;
+  }
+  .preview-head{
+    display:flex; justify-content:space-between; align-items:center;
+    margin-bottom: 14px;
+  }
+  .preview-head h4{ font-size: 13.5px; font-weight:700; color:#fff; }
+  .preview-head .star{ color:#e2b13c; font-size:13px; }
+  .preview-cols{ display:flex; gap: 12px; }
+  .preview-col{ flex:1; min-width:0; }
+  .preview-col-head{
+    font-size: 11px; font-weight:600; color: var(--text-dim); margin-bottom: 8px;
+    display:flex; justify-content:space-between;
+  }
+  .pcard{
+    background:#171a26;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 9px;
+    padding: 9px 10px;
+    margin-bottom: 8px;
+  }
+  .pcard .title{ font-size: 11px; color:#eef0f6; margin-bottom:7px; font-weight:500; line-height:1.3; }
+  .ptag{
+    font-size: 9.5px; font-weight:700; padding:2px 7px; border-radius:5px; color:#fff; display:inline-block;
+  }
+  .ptag.electric{ background:#3b5bff; }
+  .ptag.design{ background:#6a4fd6; }
+  .ptag.medium{ background:#b5762e; }
+  .ptag.low{ background:#2b8f5e; }
+
+  .toast-mini{
+    position:absolute;
+    right: -18px;
+    bottom: -26px;
+    width: 210px;
+    background: #12151f;
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 12px;
+    padding: 11px 13px;
+    display:flex; gap:10px; align-items:flex-start;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.55);
+    animation: floatY 6.5s ease-in-out infinite;
+  }
+  .toast-icon{
+    width: 28px;height:28px;border-radius:8px;
+    background: linear-gradient(135deg,#5b76ff,#3f56e8);
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+  }
+  .toast-icon svg{ width:13px;height:13px; color:#fff; }
+  .toast-mini .body{ font-size: 11.5px; line-height:1.45; }
+  .toast-mini .body b{ font-weight:600; color:#fff; }
+  .toast-mini .body .link{ color: #7d95ff; font-weight:600; }
+  .toast-mini .body .time{ display:block; color: var(--text-dimmer); font-size:10.5px; margin-top:1px; }
+
+  @keyframes floatY{
+    0%,100%{ transform: translateY(0px); }
+    50%{ transform: translateY(-7px); }
+  }
+
+  .trust-row{
+    position: relative;
+    z-index: 2;
+    display:flex;
+    align-items:center;
+    gap: 14px;
+    color: var(--text-dimmer);
+    font-size: 12.5px;
+  }
+  .trust-row .avatars{ display:flex; }
+  .trust-row .avatar{
+    width: 26px;height:26px;border-radius:50%;
+    background-size:cover; background-position:center;
+    border: 2px solid var(--bg);
+    margin-left:-8px;
+  }
+  .trust-row .avatar:first-child{ margin-left:0; }
+
+  /* ---------- RIGHT: FORM PANEL ---------- */
+  .form-panel{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding: 40px;
+    background: var(--bg);
+  }
+  .form-box{
+    width: 100%;
+    max-width: 380px;
+  }
+  .form-box .mobile-logo{ display:none; }
+
+  .form-head{ margin-bottom: 32px; }
+  .form-head h2{
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+  }
+  .form-head p{
+    font-size: 14.5px;
+    color: var(--text-dim);
+  }
+  .form-head p a{ color: #8fa3ff; font-weight:600; }
+  .form-head p a:hover{ text-decoration: underline; }
+
+  .social-row{
+    display:flex;
+    gap: 12px;
+    margin-bottom: 26px;
+  }
+  .social-btn{
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap: 9px;
+    padding: 11px 0;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,0.03);
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #e7e9f0;
+    cursor: pointer;
+    transition: background .15s ease, transform .15s ease;
+  }
+  .social-btn:hover{ background: rgba(255,255,255,0.06); transform: translateY(-1px); }
+  .social-btn svg{ width:16px; height:16px; }
+
+  .divider{
+    display:flex;
+    align-items:center;
+    gap: 12px;
+    margin-bottom: 24px;
+    color: var(--text-dimmer);
+    font-size: 12.5px;
+  }
+  .divider::before, .divider::after{
+    content:'';
+    flex:1;
+    height:1px;
+    background: var(--line);
+  }
+
+  .field{ margin-bottom: 18px; }
+  .field label{
+    display:block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #d7d9e2;
+    margin-bottom: 8px;
+  }
+  .input-wrap{ position: relative; }
+  .input-wrap svg{
+    position:absolute;
+    left: 13px; top: 50%;
+    transform: translateY(-50%);
+    width: 15px; height:15px;
+    color: var(--text-dimmer);
+  }
+  .field input{
+    width: 100%;
+    padding: 11px 14px 11px 38px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: var(--field);
+    color: var(--text);
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color .15s ease, box-shadow .15s ease;
+  }
+  .field input::placeholder{ color: var(--text-dimmer); }
+  .field input:focus{
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(79,107,255,0.18);
+  }
+  .toggle-pass{
+    position:absolute;
+    right: 13px; top: 50%;
+    transform: translateY(-50%);
+    width: 15px; height:15px;
+    color: var(--text-dimmer);
+    cursor: pointer;
+    background:none; border:none; padding:0;
+  }
+
+  .row-between{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom: 24px;
+  }
+  .checkbox-row{
+    display:flex; align-items:center; gap: 8px;
+    font-size: 13px; color: var(--text-dim);
+  }
+  .checkbox-row input{
+    width: 15px; height:15px;
+    accent-color: var(--blue);
+  }
+  .forgot{ font-size: 13px; color: #8fa3ff; font-weight: 600; }
+  .forgot:hover{ text-decoration: underline; }
+
+  .btn-primary{
+    width: 100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap: 8px;
+    font-weight: 700;
+    font-size: 14.5px;
+    padding: 13px 0;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    color: #fff;
+    background: linear-gradient(135deg, #5b76ff, #3f56e8);
+    box-shadow: 0 8px 24px rgba(63,90,255,0.35);
+    transition: transform .15s ease, box-shadow .15s ease;
+    margin-bottom: 20px;
+  }
+  .btn-primary:hover{ transform: translateY(-1px); box-shadow: 0 10px 28px rgba(63,90,255,0.5); }
+  .btn-primary svg{ width:15px;height:15px; }
+
+  .terms{
+    font-size: 12.5px;
+    color: var(--text-dimmer);
+    text-align:center;
+    line-height:1.5;
+  }
+  .terms a{ color: #8fa3ff; font-weight: 600; }
+
+  @media (max-width: 980px){
+    .screen{ grid-template-columns: 1fr; }
+    .brand-panel{ display:none; }
+    .form-box .mobile-logo{
+      display:flex; align-items:center; gap:10px;
+      font-weight:800; font-size:18px; margin-bottom: 36px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="screen">
+
+  <!-- LEFT BRAND PANEL -->
+  <div class="brand-panel">
+    <div class="glow"></div>
+    <div class="glow-2"></div>
+    <div class="stars"></div>
+
+    <div class="logo">
+      <span class="logo-mark">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M4 4h16M4 12h11M4 20h7" stroke="white" stroke-width="2.6" stroke-linecap="round"/></svg>
+      </span>
+      FlowBoard
+    </div>
+
+    <div>
+      <div class="brand-copy">
+        <h1>Pick up right where your team <span class="accent">left off.</span></h1>
+        <p>Boards, comments and notifications sync in real time — log back in and everything is exactly where you left it.</p>
+      </div>
+
+      <div class="preview-wrap">
+        <div class="preview-card">
+          <div class="preview-head">
+            <h4>Product Launch v2</h4>
+            <span class="star">★</span>
+          </div>
+          <div class="preview-cols">
+            <div class="preview-col">
+              <div class="preview-col-head">In Progress <span>3</span></div>
+              <div class="pcard">
+                <div class="title">API Rate Limiting</div>
+                <span class="ptag electric">High</span>
+              </div>
+              <div class="pcard">
+                <div class="title">Add Activity Timeline</div>
+                <span class="ptag medium">Medium</span>
+              </div>
+            </div>
+            <div class="preview-col">
+              <div class="preview-col-head">Review <span>2</span></div>
+              <div class="pcard">
+                <div class="title">Mobile Responsiveness</div>
+                <span class="ptag design">Design</span>
+              </div>
+              <div class="pcard">
+                <div class="title">Performance Optimization</div>
+                <span class="ptag low">Low</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="toast-mini">
+          <div class="toast-icon">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="body">
+            Task moved to <span class="link">Review</span>
+            <span class="time">Just now</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="trust-row">
+      <div class="avatars">
+        <div class="avatar" style="background-image:url('https://i.pravatar.cc/60?img=32')"></div>
+        <div class="avatar" style="background-image:url('https://i.pravatar.cc/60?img=12')"></div>
+        <div class="avatar" style="background-image:url('https://i.pravatar.cc/60?img=15')"></div>
+      </div>
+      Joined by 12,000+ teams shipping with FlowBoard
+    </div>
+  </div>
+
+  <!-- RIGHT FORM PANEL -->
+  <div class="form-panel">
+    <div class="form-box">
+      <div class="mobile-logo">
+        <span class="logo-mark">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M4 4h16M4 12h11M4 20h7" stroke="white" stroke-width="2.6" stroke-linecap="round"/></svg>
+        </span>
+        FlowBoard
+      </div>
+
+      <div class="form-head">
+        <h2>Welcome back</h2>
+        <p>New to FlowBoard? <a href="register.html">Create an account</a></p>
+      </div>
+
+      <div class="social-row">
+        <button class="social-btn">
+          <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M23.5 12.27c0-.79-.07-1.54-.2-2.27H12v4.3h6.47a5.53 5.53 0 01-2.4 3.63v3.02h3.88c2.27-2.09 3.55-5.17 3.55-8.68z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.07 7.95-2.9l-3.88-3.02c-1.08.72-2.46 1.15-4.07 1.15-3.13 0-5.78-2.1-6.73-4.94H1.24v3.1A12 12 0 0012 24z"/><path fill="#FBBC05" d="M5.27 14.29a7.2 7.2 0 010-4.58v-3.1H1.24a12 12 0 000 10.78z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.44-3.44C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.69 1.24 6.61l4.03 3.1C6.22 6.86 8.87 4.75 12 4.75z"/></svg>
+          Google
+        </button>
+        <button class="social-btn">
+          <svg viewBox="0 0 24 24" fill="#e7e9f0"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.09 3.29 9.4 7.86 10.93.58.1.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.87-1.54-3.87-1.54-.53-1.34-1.29-1.7-1.29-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.79 1.2 1.79 1.2 1.04 1.78 2.73 1.27 3.4.97.1-.75.4-1.27.72-1.56-2.56-.29-5.26-1.28-5.26-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11 11 0 015.8 0c2.2-1.49 3.17-1.18 3.17-1.18.64 1.6.24 2.76.12 3.05.74.81 1.18 1.84 1.18 3.1 0 4.43-2.7 5.4-5.28 5.69.42.36.78 1.07.78 2.16 0 1.56-.02 2.82-.02 3.2 0 .32.21.67.8.56A11.51 11.51 0 0023.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
+          GitHub
+        </button>
+      </div>
+
+      <div class="divider">or continue with email</div>
+
+      <form onsubmit="return false;">
+        <div class="field">
+          <label for="email">Email</label>
+          <div class="input-wrap">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M3 6a2 2 0 012-2h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V6z" stroke="currentColor" stroke-width="1.6"/><path d="M4 6.5l7.4 5.5a1 1 0 001.2 0L20 6.5" stroke="currentColor" stroke-width="1.6"/></svg>
+            <input type="email" id="email" placeholder="you@company.com" required>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="password">Password</label>
+          <div class="input-wrap">
+            <svg viewBox="0 0 24 24" fill="none"><rect x="4" y="10" width="16" height="10" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M8 10V7a4 4 0 018 0v3" stroke="currentColor" stroke-width="1.6"/></svg>
+            <input type="password" id="password" placeholder="Enter your password" required>
+            <button type="button" class="toggle-pass" aria-label="Show password">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.6"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="row-between">
+          <label class="checkbox-row">
+            <input type="checkbox">
+            Remember me
+          </label>
+          <a href="#" class="forgot">Forgot password?</a>
+        </div>
+
+        <button type="submit" class="btn-primary">
+          Log in
+          <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </form>
+
+      <p class="terms">By continuing, you agree to FlowBoard's <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.</p>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
