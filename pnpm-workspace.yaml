@@ -5,3 +5,8 @@ packages:
 allowBuilds:
   esbuild: true
   unrs-resolver: false
+permissions:
+  '@trpc/client':
+    skills: true
+  '@trpc/server':
+    skills: true

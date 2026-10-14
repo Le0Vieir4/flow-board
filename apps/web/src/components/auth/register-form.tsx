@@ -55,22 +55,23 @@ export function RegisterForm({ redirect }: RegisterFormProps) {
     clearErrors();
 
     try {
-      // Pass data as plain object with redirect to avoid FormData serialization issues
-      const result = await registerUser({ ...data, redirect });
-      console.log("Register result:", result);
+      const result = await registerUser({ ...data })
+
       if (result.success) {
         await refreshSession();
         router.push(result.redirect ?? redirect);
         return;
       }
 
-      if (result.fieldErrors) {
-        Object.entries(result.fieldErrors).forEach(([field, message]) => {
-          setError(field as keyof RegisterFormData, { type: "server", message });
-        });
-      }
-      if (result.error) {
-        setServerError(result.error);
+      if (!result.success) {
+        if (result.fieldErrors) {
+          for (const [field, message] of Object.entries(result.fieldErrors)) {
+            setError(field as keyof RegisterFormData, { type: "server", message  });
+          }
+        } else if (result.error) {
+          setServerError(result.error);
+        }
+        return;
       }
     } finally {
       setSubmitting(false);
@@ -102,7 +103,7 @@ export function RegisterForm({ redirect }: RegisterFormProps) {
           label="Full name"
           htmlFor="name"
           error={errors.name?.message as string | undefined}
-          icon={<Icons.UserIcon className="w-full h-full" />}
+          icon={<Icons.UsersIcon className="w-full h-full" />}
         >
           <input
             type="text"

@@ -21,10 +21,26 @@ import {
   MenuIcon,
   LogOutIcon as LogoutIcon,
   UsersIcon,
+  UserCircleIcon,
+  MailIcon,
+  LockIcon,
+  CircleIcon,
+  AlertCircleIcon,
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  EyeOffIcon,
+  EyeIcon,
+  CheckCircleIcon,
+  ZapIcon,
+  CopyIcon,
+  SettingsIcon,
+  ArchiveIcon,
 } from 'lucide-react';
 import type { IconProps } from './types';
-
+import { GithubIcon, GoogleIcon } from './social-icons';
 export const iconMap = {
+  ZapIcon,
+  CheckCircleIcon,
   HomeIcon,
   TasksIcon,
   BellIcon,
@@ -47,6 +63,21 @@ export const iconMap = {
   MenuIcon,
   LogoutIcon,
   UsersIcon,
+  UserCircleIcon,
+  MailIcon,
+  LockIcon,
+  CircleIcon,
+  AlertCircleIcon,
+  ArrowRightIcon,
+  ArrowLeftIcon,
+  EyeOffIcon,
+  EyeIcon,
+  CopyIcon,
+  SettingsIcon,
+  ArchiveIcon,
+
+  GoogleIcon,
+  GithubIcon
 } as const;
 
 export type IconName = keyof typeof iconMap;

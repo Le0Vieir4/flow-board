@@ -11,7 +11,7 @@ export function SocialRow() {
         onClick={() => window.location.assign(oauthUrl("google"))}
         className="flex-1 flex items-center justify-center gap-2 py-3 rounded-field border border-line bg-white/3 text-sm font-semibold text-foreground cursor-pointer hover:bg-white/6 hover:-translate-y-px transition-all duration-150"
       >
-        <Icons.ChromeIcon className="w-4 h-4" strokeWidth={1.8} />
+        <Icons.GoogleIcon className="w-4 h-4" strokeWidth={1.8} /> 
         Google
       </button>
       <button

@@ -51,8 +51,8 @@ export function LoginForm({ redirect }: LoginFormProps) {
     clearErrors();
 
     try {
-      // Pass data as plain object with redirect to avoid FormData serialization issues
-      const result = await loginUser({ ...data, redirect });
+
+      const result = await loginUser({ ...data });
 
       if (result.success) {
         await refreshSession();
