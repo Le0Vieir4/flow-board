@@ -1,12 +1,13 @@
 import { MiddlewareConsumer, Module, NestModule, OnModuleInit } from "@nestjs/common";
 import * as passport from "passport";
 import { UsersModule } from "../users/users.module";
+import { EmailModule } from "../email/email.module";
 import { AuthController } from "./auth.controller";
 import { AuthService } from "./auth.service";
 import { configurePassport, githubConfigured, googleConfigured } from "./passport";
 
 @Module({
-  imports: [UsersModule],
+  imports: [UsersModule, EmailModule],
   controllers: [AuthController],
   providers: [AuthService],
 })

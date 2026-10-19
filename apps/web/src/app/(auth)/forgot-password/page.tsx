@@ -1,17 +1,30 @@
 import type { Metadata } from "next";
-import { ComingSoonPage } from "@/components/coming-soon";
+import { AuthShell } from "@/components/auth/auth-shell";
+import { ForgotPasswordForm } from "@/components/auth/forgot-password-form";
 
 export const metadata: Metadata = {
   title: "Forgot password — FlowBoard",
-  description:
-    "Password reset is coming soon to FlowBoard. We'll send you a reset link the moment it's ready.",
+  description: "Reset your password. We'll send you a reset link to your email address.",
 };
 
 export default function ForgotPasswordPage() {
   return (
-    <ComingSoonPage
-      title="Password reset is coming soon"
-      description="We're building the reset flow. When it's ready, a reset link will land in your inbox in seconds — in the meantime, keep your credentials close."
-    />
+    <AuthShell
+      headline={
+        <>
+          Forgot your{" "}
+          <span className="bg-gradient-to-r from-[#7f97ff] to-primary bg-clip-text text-transparent">
+            password?
+          </span>
+        </>
+      }
+      paragraph="No problem. Enter your email and we'll send you a reset link."
+      boardName=""
+      columns={[]}
+      toast={{ text: "", time: "" }}
+      trustText="Free for teams up to 10 · No credit card required"
+    >
+      <ForgotPasswordForm />
+    </AuthShell>
   );
 }

@@ -32,6 +32,10 @@ services:
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
       GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
       GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
+      WEB_URL: http://localhost:3000
+      AUTH_REDIRECT_URL: http://localhost:3000/dashboard
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      RESEND_FROM_EMAIL: noreply@flowboard.local
     volumes:
       - ./packages/shared:/app/packages/shared
       - ./packages/ui:/app/packages/ui

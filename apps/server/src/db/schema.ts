@@ -24,6 +24,7 @@ export const users = pgTable("users", {
   githubId: text("github_id").unique(),
   role: text("role").notNull().default("USER"),
   isActive: boolean("is_active").notNull().default(true),
+  emailVerified: boolean("email_verified").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
@@ -111,6 +112,22 @@ export const taskChecklists = pgTable("task_checklists", {
 
 export const taskChecklistsRelations = relations(taskChecklists, ({ one }) => ({
   task: one(tasks, { fields: [taskChecklists.taskId], references: [tasks.id] }),
+}));
+
+export const verificationTokens = pgTable("verification_tokens", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  token: text("token").notNull().unique(),
+  type: text("type").notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  usedAt: timestamp("used_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const verificationTokensRelations = relations(verificationTokens, ({ one }) => ({
+  user: one(users, { fields: [verificationTokens.userId], references: [users.id] }),
 }));
 
 export const comments = pgTable("comments", {
@@ -217,3 +234,5 @@ export type NewTaskChecklistRow = typeof taskChecklists.$inferInsert;
 export type CommentRow = typeof comments.$inferSelect;
 export type NotificationRow = typeof notifications.$inferSelect;
 export type NewNotificationRow = typeof notifications.$inferInsert;
+export type VerificationTokenRow = typeof verificationTokens.$inferSelect;
+export type NewVerificationTokenRow = typeof verificationTokens.$inferInsert;

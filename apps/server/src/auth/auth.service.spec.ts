@@ -6,15 +6,24 @@ import { db } from "../db";
 import { refreshTokens, users } from "../db/schema";
 import { eq } from "drizzle-orm";
 import { signAccessToken, newRefreshToken, hashToken, ACCESS_TTL_MS, REFRESH_TTL_MS } from "./utils";
+import { EmailService } from "../email/email.service";
 
-const mockSelect = vi.hoisted(() => vi.fn().mockReturnThis());
-const mockFrom = vi.hoisted(() => vi.fn().mockReturnThis());
-const mockWhere = vi.hoisted(() => vi.fn().mockReturnThis());
+const mockSelect = vi.hoisted(() =>
+  vi.fn().mockImplementation(() => ({
+    from: vi.fn().mockImplementation(() => ({
+      where: vi.fn().mockResolvedValue([]),
+    })),
+  })),
+);
+const mockFrom = vi.hoisted(() => vi.fn());
+const mockWhere = vi.hoisted(() => vi.fn());
 const mockReturning = vi.hoisted(() => vi.fn().mockResolvedValue([]));
-const mockValues = vi.hoisted(() => vi.fn().mockReturnThis());
-const mockSet = vi.hoisted(() => vi.fn().mockReturnThis());
+const mockValues = vi.hoisted(() => vi.fn());
+const mockSet = vi.hoisted(() => vi.fn().mockReturnValue({ where: mockWhere }));
 const mockUpdate = vi.hoisted(() => vi.fn().mockReturnValue({ set: mockSet, where: mockWhere }));
 const mockInsert = vi.hoisted(() => vi.fn().mockReturnValue({ values: mockValues, returning: mockReturning }));
+
+const mockSend = vi.hoisted(() => vi.fn().mockResolvedValue({}));
 
 vi.mock("../db", () => ({
   db: {
@@ -27,6 +36,10 @@ vi.mock("../db", () => ({
     update: mockUpdate,
     insert: mockInsert,
   },
+}));
+
+vi.mock("../email/email.service", () => ({
+  EmailService: vi.fn().mockImplementation(() => ({ send: mockSend })),
 }));
 
 vi.mock("../users/users.service", () => ({
@@ -89,7 +102,7 @@ describe("AuthService", () => {
     mockCompare.mockResolvedValue(true);
     mockHash.mockResolvedValue("hashed-password");
     mockUsersService = new UsersService();
-    service = new AuthService(mockUsersService);
+    service = new AuthService(mockUsersService, { send: mockSend });
   });
 
   describe("register", () => {

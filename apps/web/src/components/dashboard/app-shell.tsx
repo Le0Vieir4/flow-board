@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import { useNewBoardModalState } from "@/lib/commands";
 import { Icons } from "@flow/ui/icons";
 import { SidebarContent, Sidebar } from "./sidebar";
@@ -12,6 +13,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { open: newBoardOpen, setOpen: setNewBoardOpen } = useNewBoardModalState();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
     if (!drawerOpen) return;
@@ -69,6 +71,17 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       )}
 
+      {user && !user.emailVerified && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="bg-warning/10 border border-warning/20 rounded-lg px-6 py-4 max-w-md text-center">
+            <Icons.MailIcon className="w-5 h-5 text-warning mb-2" strokeWidth={2} />
+            <h3 className="text-label font-semibold text-warning mb-1">Verify your email</h3>
+            <p className="text-meta-small text-muted mb-4">
+              Please verify your email address to unlock all board features.
+            </p>
+          </div>
+        </div>
+      )}
       <ToastStack />
       {newBoardOpen && <NewBoardModal onClose={() => setNewBoardOpen(false)} />}
       <ShortcutsOverlay isOpen={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />

@@ -30,6 +30,7 @@ export function toUser(row: UserRow): User {
     color: row.color,
     role: row.role as User["role"],
     isActive: row.isActive,
+    emailVerified: row.emailVerified,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };

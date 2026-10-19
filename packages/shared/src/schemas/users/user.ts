@@ -11,6 +11,7 @@ export const User = z.object({
   color: z.string(),
   role: UserRole,
   isActive: z.boolean(),
+  emailVerified: z.boolean(),
   createdAt: z.string(),
   updatedAt: z.string(),
 })

@@ -59,14 +59,17 @@
 ## Remaining Phases
 
 ### Phase 5: Password Reset, Email Verification & SMTP (Resend)
-**Status:** In Progress
-- Add `resend` dependency, env vars: `RESEND_API_KEY`, `RESEND_FROM_EMAIL`
-- `verification_tokens` table + `email_verified` column on `users`
+**Status:** Complete
+- Added `resend` dependency, env vars: `RESEND_API_KEY`, `RESEND_FROM_EMAIL`
+- `verification_tokens` table + `email_verified` column on `users` (migration `0004_verification_tokens.sql`)
 - `EmailService` using Resend (console.log fallback if API key missing)
 - Auth flows: forgot-password, reset-password, verify-email, resend-verification, change-password
 - tRPC routers for email auth flows
 - UI pages: `/forgot-password`, `/reset-password/[token]`, `/verify-email`, `/settings/password`
-- "Verify your email" banner for unverified users (unverified users can still log in)
+- "Verify your email" banner for unverified users
+- Typecheck: passes (server, shared, web)
+- Lint: passes (0 errors)
+- Tests: 44/44 pass
 
 ### Phase 6: Real-time Comments + Full Test Coverage
 - WebSocket comment broadcast already implemented in Phase 3
