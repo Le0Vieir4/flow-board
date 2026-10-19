@@ -167,3 +167,5 @@ export function ChangePasswordForm() {
     </>
   );
 }
+
+export default ChangePasswordForm;

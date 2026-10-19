@@ -16,15 +16,20 @@ const queryClient = new QueryClient({
 });
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
-  // Keep the WebSocket connection alive across dashboard pages so presence
-  // and notification invalidation work everywhere.
-  useRealtime();
-
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <AppShell>{children}</AppShell>
+        <DashboardShell>{children}</DashboardShell>
       </AuthProvider>
     </QueryClientProvider>
   );
+}
+
+function DashboardShell({ children }: { children: ReactNode }) {
+  // Keep the WebSocket connection alive across dashboard pages so presence
+  // and notification invalidation work everywhere. Rendered inside the
+  // QueryClientProvider because useRealtime requires the query client.
+  useRealtime();
+
+  return <AppShell>{children}</AppShell>;
 }
