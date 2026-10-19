@@ -4,6 +4,7 @@ import { columnsRouter } from "./routers/columns";
 import { tasksRouter } from "./routers/tasks";
 import { authRouter } from "./routers/auth";
 import { sharesRouter } from "./routers/shares";
+import { notificationsRouter } from "./routers/notifications";
 
 export const appRouter = router({
   boards: boardsRouter,
@@ -11,6 +12,7 @@ export const appRouter = router({
   tasks: tasksRouter,
   auth: authRouter,
   shares: sharesRouter,
+  notifications: notificationsRouter,
 });
 
 export type AppRouter = typeof appRouter;

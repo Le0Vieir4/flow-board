@@ -90,6 +90,10 @@ export class BoardsService {
     return board;
   }
 
+  async assertBoardAccess(boardId: string, userId: string): Promise<void> {
+    await this.ensureBoardAccess(boardId, userId);
+  }
+
   private async ensureBoardOwner(boardId: string, userId: string): Promise<typeof boards.$inferSelect> {
     const board = await this.ensureBoardAccess(boardId, userId);
     if (board.ownerId !== userId) throw new ForbiddenException("Only the board owner can do this");

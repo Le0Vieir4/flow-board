@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import type { ServerMessage } from "@flow/shared";
-import { applyInboundMove, findTaskInBoard, setPresence } from "@/lib/boards-store";
+import { applyInboundMove, setPresence } from "@/lib/boards-store";
 import { pushToast } from "@/lib/toast-store";
-import { pushNotification } from "@/lib/notification-store";
 import { userById } from "@/lib/mock-data";
 
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL ?? "ws://localhost:4000";
+const WS_URL = process.env.NEXT_PUBLIC_WS_URL ?? "ws://localhost:8000/ws";
 
 export type RealtimeStatus = "connecting" | "live" | "offline";
 
@@ -16,6 +16,12 @@ let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 let retries = 0;
 let failed = false;
 let manualClose = false;
+
+let invalidateNotifications: (() => void) | null = null;
+
+export function setNotificationsInvalidator(fn: () => void) {
+  invalidateNotifications = fn;
+}
 
 const listeners = new Set<() => void>();
 
@@ -30,7 +36,9 @@ function getStatus(): RealtimeStatus {
 
 function subscribeStatus(fn: () => void) {
   listeners.add(fn);
-  return () => listeners.delete(fn);
+  return () => {
+    listeners.delete(fn);
+  };
 }
 
 export function useRealtimeStatus(): RealtimeStatus {
@@ -57,9 +65,6 @@ function connect() {
     try {
       const parsed = JSON.parse(event.data as string);
       if (!parsed || typeof parsed !== "object") return;
-      const type = (parsed as { type?: string }).type;
-      if (type !== "task.moved" && type !== "presence") return;
-      if ((parsed as { clientId?: string }).clientId && (parsed as { clientId: string }).clientId === clientId) return;
       handleInbound(parsed as ServerMessage);
     } catch {
       return;
@@ -94,17 +99,7 @@ function handleInbound(msg: unknown) {
           time: "Just now",
           userColor: actor?.color,
         });
-        const entry = findTaskInBoard(m.boardId, m.taskId);
-        pushNotification({
-          kind: "moved",
-          actorId: m.userId ?? "u-tom",
-          boardId: m.boardId,
-          taskId: m.taskId,
-          taskLabel: m.taskLabel ?? entry?.task.label,
-          taskTitle: entry?.task.title,
-          columnName: m.toColumnName ?? entry?.column.name,
-          at: m.at ?? new Date().toISOString(),
-        });
+        invalidateNotifications?.();
       }
       break;
     case "presence":
@@ -116,6 +111,15 @@ function handleInbound(msg: unknown) {
 }
 
 export function useRealtime(boardId?: string) {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    setNotificationsInvalidator(() => {
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["notifications", "unread"] });
+    });
+  }, [queryClient]);
+
   useEffect(() => {
     clientId = clientId || `c-${Math.random().toString(36).slice(2, 10)}`;
     desiredBoard = boardId ?? null;
@@ -123,8 +127,6 @@ export function useRealtime(boardId?: string) {
     connect();
     if (boardId) {
       send({ type: "subscribe", clientId, boardId });
-      // Seed collaborators as present until the relay flips their state.
-      // (Simulation does not need "you" — your presence is implied.)
     }
     return () => {
       if (boardId) send({ type: "unsubscribe", clientId, boardId });
