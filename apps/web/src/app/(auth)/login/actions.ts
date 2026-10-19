@@ -1,8 +1,8 @@
 "use server";
 
 import { validateLogin } from "@flow/shared";
-import { getApiUrl } from "@/lib/api";
 import { LoginRequest } from "@flow/shared";
+import { trpcFetch } from "@/lib/api";
 import { setCookies } from "@/lib/auth/auth-cookies";
 
 export interface LoginActionResult {
@@ -12,8 +12,6 @@ export interface LoginActionResult {
   fieldErrors?: Record<string, string>;
   error?: string;
 }
-
-const apiUrl = getApiUrl();
 
 export async function loginUser(data: LoginRequest): Promise<LoginActionResult> {
   const parsed = validateLogin(data);
@@ -30,28 +28,11 @@ export async function loginUser(data: LoginRequest): Promise<LoginActionResult> 
   }
 
   try {
-    const res = await fetch(`${apiUrl}/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(parsed.data),
-      cache: "no-store",
-    });
-
-    const data = await res.json().catch(() => ({}));
-
-    if (!res.ok) {
-      if (res.status === 401) {
-        return { success: false, error: "Invalid email or password" };
-      }
-      if (res.status === 400 && data?.fieldErrors) {
-        return { success: false, fieldErrors: data.fieldErrors };
-      }
-      return { success: false, error: data?.message?.[0] ?? "Login failed" };
-    }
+    const { res, result } = await trpcFetch<{ user: { id: string; name: string; email: string; role: string } }>("auth.login", parsed.data);
 
     await setCookies(res.headers);
 
-    return { success: true, redirect: data.redirect };
+    return { success: true, user: result.user };
   } catch {
     return {
       success: false,

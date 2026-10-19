@@ -124,6 +124,16 @@ export const refreshTokens = pgTable("refresh_tokens", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const boardShares = pgTable("board_shares", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  boardId: uuid("board_id")
+    .notNull()
+    .references(() => boards.id, { onDelete: "cascade" }),
+  token: text("token").notNull().unique(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const usersRelations = relations(users, ({ many }) => ({
   ownedBoards: many(boards),
   memberships: many(boardMembers),

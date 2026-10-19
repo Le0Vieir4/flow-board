@@ -3,6 +3,7 @@
 import { useSyncExternalStore } from "react";
 import type { User } from "@flow/shared";
 import { getApiUrl } from "@/lib/api";
+import { trpcFetch } from "@/lib/api";
 
 const API_URL = getApiUrl();
 
@@ -27,16 +28,27 @@ function setState(next: AuthState) {
 
 function subscribe(fn: () => void) {
   listeners.add(fn);
-  return () => listeners.delete(fn);
+  return () => {
+    listeners.delete(fn);
+  };
 }
 
-async function request(path: string, init?: RequestInit, retry = true): Promise<Response> {
-  const res = await fetch(`${API_URL}${path}`, { credentials: "include", ...init });
-  if (res.status === 401 && retry && !path.startsWith("/auth/")) {
-    const refreshed = await fetch(`${API_URL}/auth/refresh`, { method: "POST", credentials: "include" });
-    if (refreshed.ok) return request(path, init, false);
+export async function refreshSession(): Promise<User | null> {
+  try {
+    const { result } = await trpcFetch<User>("auth.me");
+    setState({ user: result, status: "authenticated" });
+    return result;
+  } catch {
+    try {
+      await trpcFetch("auth.refresh");
+      const { result } = await trpcFetch<User>("auth.me");
+      setState({ user: result, status: "authenticated" });
+      return result;
+    } catch {
+      setState({ user: null, status: "anonymous" });
+      return null;
+    }
   }
-  return res;
 }
 
 let bootstrapped = false;
@@ -45,18 +57,6 @@ export function bootstrapAuth() {
   if (bootstrapped) return;
   bootstrapped = true;
   void refreshSession();
-}
-
-export async function refreshSession(): Promise<User | null> {
-  try {
-    const res = await request("/auth/me");
-    const user = res.ok ? ((await res.json()) as User) : null;
-    setState({ user, status: user ? "authenticated" : "anonymous" });
-    return user;
-  } catch {
-    setState({ user: null, status: "anonymous" });
-    return null;
-  }
 }
 
 export function useAuth(): AuthState {

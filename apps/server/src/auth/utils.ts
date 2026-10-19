@@ -1,4 +1,5 @@
 import { createHash, randomBytes } from "crypto";
+import type { Response } from "express";
 import * as jwt from "jsonwebtoken";
 
 export const ACCESS_COOKIE = "fb_access";
@@ -45,4 +46,26 @@ export function newRefreshToken(): string {
 
 export function hashToken(token: string): string {
   return createHash("sha256").update(token).digest("hex");
+}
+
+export const cookieBase = {
+  httpOnly: true,
+  sameSite: "lax" as const,
+  secure: process.env.NODE_ENV === "production",
+  path: "/",
+} as const;
+
+export interface TokenPair {
+  accessToken: string;
+  refreshToken: string;
+}
+
+export function setAuthCookies(res: Response, tokens: TokenPair): void {
+  res.cookie(ACCESS_COOKIE, tokens.accessToken, { ...cookieBase, maxAge: ACCESS_TTL_MS });
+  res.cookie(REFRESH_COOKIE, tokens.refreshToken, { ...cookieBase, maxAge: REFRESH_TTL_MS });
+}
+
+export function clearAuthCookies(res: Response): void {
+  res.clearCookie(ACCESS_COOKIE, { path: "/" });
+  res.clearCookie(REFRESH_COOKIE, { path: "/" });
 }

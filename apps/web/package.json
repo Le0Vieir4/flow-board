@@ -11,6 +11,7 @@
     "clean": "rm -rf .next node_modules"
   },
   "dependencies": {
+    "@flow/server": "workspace:*",
     "@flow/shared": "workspace:*",
     "@flow/ui": "workspace:*",
     "@hookform/resolvers": "^5.9.1",

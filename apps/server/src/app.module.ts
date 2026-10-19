@@ -1,18 +1,26 @@
 import { MiddlewareConsumer, Module, NestModule } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
-import { AuthMiddleware } from "./auth/middleware";
 import { AuthModule } from "./auth/auth.module";
-import { LoggerMiddleware } from "./common/middleware/logger.middleware";
+import { BoardsModule } from "./boards/boards.module";
+import { ColumnsModule } from "./columns/columns.module";
+import { TasksModule } from "./tasks/tasks.module";
 import { UsersModule } from "./users/users.module";
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }), UsersModule, AuthModule],
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    UsersModule,
+    AuthModule,
+    BoardsModule,
+    ColumnsModule,
+    TasksModule,
+  ],
   controllers: [],
   providers: [],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(AuthMiddleware).forRoutes("{*path}");
-    consumer.apply(LoggerMiddleware).forRoutes("users");
+    // tRPC context handles session auth. NestJS middleware is kept only for
+    // OAuth passport initiation/callback routes registered by AuthModule.
   }
 }

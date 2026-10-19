@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 const ACCESS_COOKIE = "fb_access";
-const PROTECTED_PREFIXES = ["/boards", "/tasks", "/notifications"];
+const PROTECTED_PREFIXES = ["/dashboard", "/tasks", "/notifications"];
 
 export function proxy(request: NextRequest) {
   const hasAuth = request.cookies.has(ACCESS_COOKIE);
@@ -17,7 +17,7 @@ export function proxy(request: NextRequest) {
   }
 
   if (hasAuth && pathname === "/login") {
-    return NextResponse.redirect(new URL("/boards", request.url));
+    return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
   return NextResponse.next();

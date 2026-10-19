@@ -1,6 +1,9 @@
 import cookieParser from "cookie-parser";
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
+import { createExpressMiddleware } from "@trpc/server/adapters/express";
+import { appRouter } from "./trpc/router";
+import { createContext } from "./trpc/init";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -11,6 +14,14 @@ async function bootstrap() {
     origin: process.env.WEB_URL ?? "http://localhost:3000",
     credentials: true,
   });
+
+  app.use(
+    "/api/trpc",
+    createExpressMiddleware({
+      router: appRouter,
+      createContext: ({ req, res }) => createContext({ req, res }),
+    }),
+  );
 
   const port = Number(process.env.PORT ?? 8000);
   console.log(`Server is running on port ${port}`);
