@@ -124,7 +124,7 @@ export function BoardView({ boardId }: { boardId: string }) {
 
   function handleDuplicate() {
     duplicateBoard.mutate(current.id, {
-      onSuccess: (dup) => router.push(`/dashboard/boards/${dup.id}`),
+      onSuccess: (dup: { id: string }) => router.push(`/dashboard/boards/${dup.id}`),
     });
   }
 

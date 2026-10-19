@@ -35,13 +35,13 @@ export function ShortcutsOverlay({ isOpen, onClose }: { isOpen: boolean; onClose
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={onClose}>
-      <div className="bg-panel border border-line rounded-[14px] p-6 w-full max-w-[420px] mx-4" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-panel border border-line rounded-lg p-6 w-full max-w-[420px] mx-4" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-[18px] font-bold">Keyboard Shortcuts</h2>
+          <h2 className="text-headline font-bold">Keyboard Shortcuts</h2>
           <button
             type="button"
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-[8px] text-muted-foreground hover:bg-white/[0.06] hover:text-foreground"
+            className="flex h-8 w-8 items-center justify-center rounded-badge text-muted-foreground hover:bg-white/6 hover:text-foreground"
             aria-label="Close shortcuts"
           >
             <Icons.CloseIcon size={18} />
@@ -49,16 +49,16 @@ export function ShortcutsOverlay({ isOpen, onClose }: { isOpen: boolean; onClose
         </div>
         <div className="space-y-3">
           {SHORTCUTS.map((s) => (
-            <div key={s.key} className="flex items-center gap-3 px-3 py-2.5 rounded-[8px] bg-white/[0.03]">
-              <kbd className="flex-shrink-0 items-center gap-1.5 rounded-[6px] border border-line bg-white/[0.05] px-2.5 py-1 text-[12px] font-medium text-foreground">
+            <div key={s.key} className="flex items-center gap-3 px-3 py-2.5 rounded-button bg-white/3">
+              <kbd className="flex-shrink-0 items-center gap-1.5 rounded-tag border border-line bg-white/5 px-2.5 py-1 text-label font-medium text-foreground">
                 {s.key}
               </kbd>
-              <span className="text-[13.5px] text-muted">{s.description}</span>
+              <span className="text-label text-muted">{s.description}</span>
             </div>
           ))}
         </div>
-        <p className="mt-6 text-[12px] text-muted-foreground text-center">
-          Press <kbd className="rounded-[4px] border border-line bg-white/[0.05] px-1.5 py-0.5 text-[11px] font-medium">?</kbd> again to close
+        <p className="mt-6 text-meta-small text-muted-foreground text-center">
+          Press <kbd className="rounded-sm border border-line bg-white/5 px-1.5 py-0.5 text-micro font-medium">?</kbd> again to close
         </p>
       </div>
     </div>

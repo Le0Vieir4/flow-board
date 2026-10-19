@@ -30,13 +30,15 @@ vi.mock("../db", () => ({
 }));
 
 vi.mock("../users/users.service", () => ({
-  UsersService: vi.fn().mockImplementation(() => ({
-    findRowByEmail: vi.fn(),
-    findRowByUsername: vi.fn(),
-    create: vi.fn(),
-    ensureUniqueUsername: vi.fn(),
-    upsertOAuth: vi.fn(),
-  })),
+  UsersService: vi.fn().mockImplementation(
+    class {
+      findRowByEmail = vi.fn();
+      findRowByUsername = vi.fn();
+      create = vi.fn();
+      ensureUniqueUsername = vi.fn();
+      upsertOAuth = vi.fn();
+    }
+  ),
   toUser: vi.fn((row) => ({
     id: row.id,
     email: row.email,
@@ -53,6 +55,9 @@ vi.mock("../users/users.service", () => ({
 
 const mockCompare = vi.hoisted(() => vi.fn().mockResolvedValue(true));
 const mockHash = vi.hoisted(() => vi.fn().mockResolvedValue("hashed-password"));
+const mockSignAccessToken = vi.hoisted(() => vi.fn((user) => `access-token-${user.id}`));
+const mockNewRefreshToken = vi.hoisted(() => vi.fn(() => "new-refresh-token"));
+const mockHashToken = vi.hoisted(() => vi.fn((token) => `hashed-${token}`));
 
 vi.mock("bcryptjs", () => ({
   default: {
@@ -64,9 +69,9 @@ vi.mock("bcryptjs", () => ({
 }));
 
 vi.mock("./utils", () => ({
-  signAccessToken: vi.fn((user) => `access-token-${user.id}`),
-  newRefreshToken: vi.fn(() => "new-refresh-token"),
-  hashToken: vi.fn((token) => `hashed-${token}`),
+  signAccessToken: mockSignAccessToken,
+  newRefreshToken: mockNewRefreshToken,
+  hashToken: mockHashToken,
   ACCESS_TTL_MS: 900000,
   REFRESH_TTL_MS: 2592000000,
   REFRESH_TTL_SECONDS: 2592000,
@@ -74,10 +79,6 @@ vi.mock("./utils", () => ({
   REFRESH_COOKIE: "fb_refresh",
   ACCESS_COOKIE: "fb_access",
 }));
-
-const mockSignAccessToken = vi.fn((user) => `access-token-${user.id}`);
-const mockNewRefreshToken = vi.fn(() => "new-refresh-token");
-const mockHashToken = vi.fn((token) => `hashed-${token}`);
 
 describe("AuthService", () => {
   let service: AuthService;

@@ -2,14 +2,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useBoards, usePresence } from "@/lib/boards-store";
-import { useUnreadCount } from "@/lib/notification-store";
+import { useBoards } from "@/hooks/queries/boards";
+import { useUnreadCount } from "@/hooks/queries/notifications";
+import { usePresence } from "@/lib/boards-store";
 import { useAuth, clearAuth } from "@/hooks/useAuth";
 import { devUser } from "@/lib/mock-data";
 import { LogoMark } from "@/components/auth/auth-shell";
-import { Avatar } from "./avatar";
+import { Avatar } from "@flow/ui";
 import { Icons } from "@flow/ui/icons";
 import { logoutUser } from "@/app/(auth)/logout/actions";
+import { Chip } from "@flow/ui";
 
 function PinnedBoardItem({
   board,
@@ -26,12 +28,12 @@ function PinnedBoardItem({
   return (
     <Link
       key={board.id}
-      href={`/boards/${board.id}`}
+      href={`/dashboard/boards/${board.id}`}
       onClick={onNavigate}
-      className={`group flex items-center gap-[10px] rounded-[10px] px-3 py-[6px] text-[13.5px] font-medium ${
+      className={`group flex items-center gap-[10px] rounded-md px-3 py-[6px] text-label ${
         activeBoardId === board.id
-          ? "bg-white/[0.06] text-foreground"
-          : "text-muted hover:bg-white/[0.04] hover:text-foreground"
+          ? "bg-white/6 text-foreground"
+          : "text-muted hover:bg-white/4 hover:text-foreground"
       }`}
     >
       <Icons.BoardIcon size={15} className="flex-shrink-0 opacity-70" />
@@ -59,40 +61,31 @@ function NavItem({
   badge?: number;
   href?: string;
 }) {
-  const body = (
-    <div
-      className={`flex items-center gap-[10px] rounded-[10px] px-3 py-[7px] text-[14.5px] font-medium ${
-        active
-          ? "bg-white/[0.06] text-foreground"
-          : disabled
-            ? "text-muted-foreground/70"
-            : "text-muted-foreground hover:bg-white/[0.04] hover:text-foreground"
-      }`}
+  const chip = (
+    <Chip
+      variant={active ? "active" : disabled ? "ghost" : "default"}
+      disabled={disabled}
+      icon={icon}
+      badge={badge}
+      badgeVariant={badge ? "electric" : undefined}
+      className="w-full justify-start text-label"
     >
-      <span className={active ? "text-foreground" : "text-muted-foreground/80"}>{icon}</span>
-      <span className="flex-1">{label}</span>
-      {badge !== undefined && badge > 0 && (
-        <span
-          key={badge}
-          className="flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-tag-electric px-1.5 text-[10px] font-bold text-white"
-        >
-          {badge}
-        </span>
-      )}
-      {disabled && (
-        <span className="rounded-full border border-line bg-white/[0.04] px-[7px] py-[1px] text-[10px] font-semibold text-muted-foreground">
+      {label}
+    </Chip>
+  );
+
+  if (disabled) {
+    return (
+      <div className="w-full">
+        {chip}
+        <span className="mt-1 inline-flex items-center rounded-full border border-line bg-white/4 px-2 py-0.5 text-micro font-semibold text-muted-foreground">
           Soon
         </span>
-      )}
-    </div>
-  );
-  return href ? (
-    <Link href={href} className="block">
-      {body}
-    </Link>
-  ) : (
-    body
-  );
+      </div>
+    );
+  }
+
+  return href ? <Link href={href} className="block">{chip}</Link> : chip;
 }
 
 export function SidebarContent({
@@ -103,46 +96,73 @@ export function SidebarContent({
   onAddBoard?: () => void;
 }) {
   const pathname = usePathname();
-  const boards = useBoards();
-  const unread = useUnreadCount();
+  const { data: boards = [] } = useBoards();
+  const { data: unreadCount = 0 } = useUnreadCount();
   const { user } = useAuth();
   const displayUser = user ?? devUser;
   const pinned = boards.filter((b) => b.status !== "archived" && b.favorite);
-  const activeBoardId = pathname.startsWith("/boards/") ? pathname.split("/")[2] : undefined;
+  const activeBoardId = pathname.startsWith("/dashboard/boards/") ? pathname.split("/")[3] : undefined;
+
+  const isActive = (href: string) => pathname === href || (href !== "/dashboard" && pathname.startsWith(href + "/"));
 
   return (
     <div className="flex h-full w-full flex-col">
-      <Link href="/boards" onClick={onNavigate} className="flex items-center gap-[10px] px-5 pt-5 pb-2">
+      <Link href="/dashboard" onClick={onNavigate} className="flex items-center gap-[10px] px-5 pt-5 pb-2">
         <LogoMark />
-        <span className="text-[19px] font-extrabold -tracking-[0.01em]">FlowBoard</span>
+        <span className="text-wordmark font-extrabold tracking-tighter">FlowBoard</span>
       </Link>
 
-      <nav aria-label="Workspace" className="mt-3 space-y-[2px] px-3">
-        <Link href="/boards" onClick={onNavigate} className="block">
-          <NavItem icon={<Icons.HomeIcon size={16} />} label="Home" active={pathname === "/boards"} />
+      <nav aria-label="Main navigation" className="mt-3 space-y-[2px] px-3">
+        <Link
+          href="/dashboard"
+          onClick={onNavigate}
+          className={`flex items-center gap-[10px] rounded-md px-3 py-[8px] text-base font-medium transition-colors ${
+            isActive("/dashboard")
+              ? "bg-primary/15 text-primary-2"
+              : "text-muted-foreground hover:bg-white/4 hover:text-foreground"
+          }`}
+        >
+          <Icons.HomeIcon size={16} />
+          Home
         </Link>
-        <NavItem
-          icon={<Icons.TasksIcon size={16} />}
-          label="My Tasks"
+        <Link
           href="/tasks"
-          active={pathname === "/tasks"}
-        />
-        <NavItem
-          icon={<Icons.BellIcon size={16} />}
-          label="Notifications"
+          onClick={onNavigate}
+          className={`flex items-center gap-[10px] rounded-md px-3 py-[8px] text-base font-medium transition-colors ${
+            isActive("/tasks")
+              ? "bg-primary/15 text-primary-2"
+              : "text-muted-foreground hover:bg-white/4 hover:text-foreground"
+          }`}
+        >
+          <Icons.TasksIcon size={16} />
+          My Tasks
+        </Link>
+        <Link
           href="/notifications"
-          active={pathname === "/notifications"}
-          badge={unread}
-        />
+          onClick={onNavigate}
+          className={`flex items-center gap-[10px] rounded-md px-3 py-[8px] text-base font-medium transition-colors relative ${
+            isActive("/notifications")
+              ? "bg-primary/15 text-primary-2"
+              : "text-muted-foreground hover:bg-white/4 hover:text-foreground"
+          }`}
+        >
+          <Icons.BellIcon size={16} />
+          Notifications
+          {unreadCount > 0 && (
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-tag-electric px-1.5 text-[10px] font-bold text-white">
+              {unreadCount > 9 ? "9+" : unreadCount}
+            </span>
+          )}
+        </Link>
       </nav>
 
-      <div className="px-5 pt-5 pb-1 text-[11px] font-semibold text-muted-foreground">Pinned boards</div>
+      <div className="px-5 pt-5 pb-1 text-meta-small font-semibold text-muted-foreground">Pinned boards</div>
       <div className="mt-[2px] space-y-[2px] px-3">
         {pinned.map((b) => (
           <PinnedBoardItem key={b.id} board={b} activeBoardId={activeBoardId} onNavigate={onNavigate} />
         ))}
         {pinned.length === 0 && (
-          <div className="px-3 py-[6px] text-[12.5px] text-muted-foreground">Star a board to pin it here.</div>
+          <div className="px-3 py-[6px] text-meta text-muted-foreground">Star a board to pin it here.</div>
         )}
         <div className="pt-[2px]">
           <AddBoardLink
@@ -158,10 +178,10 @@ export function SidebarContent({
 
       <div className="border-t border-line px-5 py-4">
         <div className="flex items-center gap-[10px]">
-          <Avatar user={displayUser} size={28} ringColor="#10131c" />
+          <Avatar user={displayUser} size={28} ringColor="var(--color-panel)" />
           <div className="min-w-0 flex-1">
-            <div className="truncate text-[13px] font-semibold">{displayUser.name}</div>
-            <div className="text-[11.5px] text-muted-foreground">Demo workspace</div>
+            <div className="truncate text-label font-semibold">{displayUser.name}</div>
+            <div className="text-meta-small text-muted-foreground">Demo workspace</div>
           </div>
           <form action={async () => {
             await logoutUser();
@@ -170,7 +190,7 @@ export function SidebarContent({
             <button
               type="submit"
               aria-label="Log out"
-              className="flex h-8 w-8 items-center justify-center rounded-[8px] text-muted-foreground hover:bg-white/[0.06] hover:text-foreground"
+              className="flex h-8 w-8 items-center justify-center rounded-badge text-muted-foreground hover:bg-white/6 hover:text-foreground"
             >
               <Icons.LogoutIcon size={15} />
             </button>
@@ -185,7 +205,7 @@ export function Sidebar({ onAddBoard }: { onAddBoard?: () => void }) {
   return (
     <aside
       aria-label="Workspace sidebar"
-      className="sticky top-0 hidden h-dvh w-[232px] flex-shrink-0 border-r border-line bg-panel max-[899px]:hidden min-[900px]:block"
+      className="sticky top-0 hidden h-dvh w-sidebar flex-shrink-0 border-r border-line bg-panel max-[899px]:hidden min-[900px]:block"
     >
       <SidebarContent onAddBoard={onAddBoard} />
     </aside>
@@ -197,7 +217,7 @@ export function AddBoardLink({ onClick }: { onClick: () => void }) {
     <button
       type="button"
       onClick={onClick}
-      className="flex items-center gap-[10px] rounded-[10px] px-3 py-[6px] text-[13.5px] font-medium text-muted-foreground hover:bg-white/[0.04] hover:text-foreground"
+      className="flex items-center gap-[10px] rounded-md px-3 py-[6px] text-label font-medium text-muted-foreground hover:bg-white/4 hover:text-foreground"
     >
       <Icons.PlusIcon size={15} className="opacity-70" />
       Add board

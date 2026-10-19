@@ -13,6 +13,7 @@ import { getPasswordRequirements, type PasswordRequirement } from "@flow/shared"
 import { Icons } from "@flow/ui";
 import { loginResolver, type LoginFormData } from "@/lib/auth-resolvers";
 import { refreshSession } from "@/hooks/useAuth";
+import { Button } from "@flow/ui";
 
 interface LoginFormProps {
   redirect: string;
@@ -78,8 +79,8 @@ export function LoginForm({ redirect }: LoginFormProps) {
   return (
     <>
       <div className="mb-8">
-        <h1 className="text-2xl font-extrabold tracking-[-0.02em] mb-2">Welcome back</h1>
-        <p className="text-sm text-muted">
+        <h1 className="text-auth-form-heading font-extrabold tracking-tight mb-2">Welcome back</h1>
+        <p className="text-body text-muted">
           New to FlowBoard?{" "}
           <Link href="/register" className="text-link font-semibold hover:underline">
             Create an account
@@ -135,7 +136,7 @@ export function LoginForm({ redirect }: LoginFormProps) {
             {requirements.map((req) => (
               <div
                 key={req.label}
-                className="flex items-center gap-2 text-xs transition-colors duration-150"
+                className="flex items-center gap-2 text-meta-small transition-colors duration-150"
                 style={{
                   color: passwordTouched
                     ? req.test(password)
@@ -165,7 +166,7 @@ export function LoginForm({ redirect }: LoginFormProps) {
         )}
 
         <div className="flex justify-between items-center mb-6">
-          <label className="flex items-center gap-2 text-sm text-muted cursor-pointer">
+          <label className="flex items-center gap-2 text-label text-muted cursor-pointer">
             <input
               type="checkbox"
               className="w-4 h-4 accent-primary"
@@ -173,16 +174,17 @@ export function LoginForm({ redirect }: LoginFormProps) {
             />
             Remember me
           </label>
-          <Link href="/forgot-password" className="text-sm text-link font-semibold hover:underline">
+          <Link href="/forgot-password" className="text-label text-link font-semibold hover:underline">
             Forgot password?
           </Link>
         </div>
 
-        <button
+        <Button
           type="submit"
           disabled={isSubmitting}
           aria-busy={isSubmitting}
-          className="w-full inline-flex items-center justify-center gap-2 font-bold text-sm py-3 rounded-field border-none cursor-pointer text-white bg-linear-to-br from-[#5b76ff] to-[#3f56e8] shadow-lg hover:-translate-y-px hover:shadow-xl transition-all duration-150 mb-5 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-lg"
+          icon={<Icons.ArrowRightIcon className="w-3.5 h-3.5" strokeWidth={2} />}
+          className="w-full"
         >
           {isSubmitting ? (
             <>
@@ -192,13 +194,12 @@ export function LoginForm({ redirect }: LoginFormProps) {
           ) : (
             <>
               Log in
-              <Icons.ArrowRightIcon className="w-3.5 h-3.5" strokeWidth={2} />
             </>
           )}
-        </button>
+        </Button>
       </form>
 
-      <p className="text-xs text-muted-foreground text-center leading-normal">
+      <p className="text-meta text-muted-foreground text-center leading-normal">
         By continuing, you agree to FlowBoard&apos;s{" "}
         <Link href="/terms" className="text-link font-semibold">
           Terms of Service

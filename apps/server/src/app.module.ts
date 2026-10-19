@@ -5,6 +5,8 @@ import { BoardsModule } from "./boards/boards.module";
 import { ColumnsModule } from "./columns/columns.module";
 import { TasksModule } from "./tasks/tasks.module";
 import { UsersModule } from "./users/users.module";
+import { NotificationsModule } from "./notifications/notifications.module";
+import { RealtimeModule } from "./realtime/realtime.module";
 
 @Module({
   imports: [
@@ -14,6 +16,8 @@ import { UsersModule } from "./users/users.module";
     BoardsModule,
     ColumnsModule,
     TasksModule,
+    NotificationsModule,
+    RealtimeModule,
   ],
   controllers: [],
   providers: [],

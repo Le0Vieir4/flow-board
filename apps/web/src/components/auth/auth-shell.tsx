@@ -11,8 +11,8 @@ export function LogoMark({ size = "default" }: { size?: "default" | "small" }) {
     <span
       className={
         size === "small"
-          ? "flex items-center justify-center w-5.5 h-5.5 rounded-md bg-linear-to-br from-primary-2 to-[#3549d1] shrink-0"
-          : "flex items-center justify-center w-8.5 h-8.5 rounded-card bg-linear-to-br from-primary-2 to-[#3549d1] shadow-card-glow shrink-0"
+          ? "flex items-center justify-center w-5.5 h-5.5 rounded-md bg-primary-gradient shrink-0"
+          : "flex items-center justify-center w-8.5 h-8.5 rounded-logo bg-primary-gradient shadow-button shrink-0"
       }
     >
       <svg viewBox="0 0 24 24" fill="none" className={size === "small" ? "w-2.75 h-2.75" : "w-4 h-4"}>
@@ -62,7 +62,7 @@ export function AuthShell({
           className="pointer-events-none absolute -top-40 -left-40 w-225 h-225"
           style={{
             background:
-              "radial-gradient(circle at 50% 50%, rgba(63,90,255,0.28), rgba(63,90,255,0.09) 40%, transparent 70%)",
+              "radial-gradient(circle at 50% 50%, var(--color-glow-primary), var(--color-glow-secondary) 40%, transparent 70%)",
           }}
         />
         <div
@@ -71,26 +71,26 @@ export function AuthShell({
         />
         <Stars />
 
-        <div className="relative z-2 flex items-center gap-2.5 font-extrabold text-lg tracking-[-0.01em]">
+        <div className="relative z-2 flex items-center gap-2.5 font-extrabold text-lg tracking-tighter">
           <LogoMark />
           FlowBoard
         </div>
 
         <div className="relative left-1/2 -translate-x-1/2 mt-7.5 mb-12.5 max-w-110">
           <div className="relative z-2">
-            <h2 className="text-3xl font-extrabold tracking-[-0.02em] leading-[1.18] mb-3.5">{headline}</h2>
-            <p className="text-sm leading-[1.6] text-muted">{paragraph}</p>
+            <h2 className="text-auth-form-heading font-extrabold tracking-tight leading-[1.18] mb-3.5">{headline}</h2>
+            <p className="text-body leading-relaxed text-muted">{paragraph}</p>
 
             <div className="relative z-2 mt-10">
-              <div className="bg-linear-to-br from-panel-2 to-[#0c0e16] border border-white/9 rounded-2xl p-4.5 shadow-card-deep max-w-105">
+              <div className="bg-linear-to-br from-panel-2 to-[#0c0e16] border border-white/9 rounded-xl p-4.5 shadow-card max-w-105">
                 <div className="flex justify-between items-center mb-3.5">
-                  <div className="text-sm font-bold text-white">{boardName}</div>
+                  <div className="text-label font-bold text-white">{boardName}</div>
                   <span className="text-star text-sm">★</span>
                 </div>
                 <div className="flex gap-3">
                   {columns.map((column) => (
                     <div key={column.name} className="flex-1 min-w-0">
-                      <div className="flex justify-between text-xs font-semibold text-muted mb-2">
+                      <div className="flex justify-between text-meta font-semibold text-muted mb-2">
                         {column.name} <span>{column.count}</span>
                       </div>
                       {column.cards.map((card) => (
@@ -98,11 +98,11 @@ export function AuthShell({
                           key={card.title}
                           className="bg-card border border-white/6 rounded-field p-2.5 mb-2"
                         >
-                          <div className="text-xs text-foreground mb-1.75 font-medium leading-[1.3]">
+                          <div className="text-meta text-foreground mb-1.75 font-medium leading-snug">
                             {card.title}
                           </div>
                           {card.tag && (
-                            <span className={`inline-block text-2xs font-bold px-1.75 py-0.5 rounded-tag text-white ${card.tag.color}`}>
+                            <span className="inline-block text-micro font-bold px-2 py-1 rounded-tag text-white bg-[var(--color-tag-electric)]">
                               {card.tag.label}
                             </span>
                           )}
@@ -118,17 +118,17 @@ export function AuthShell({
           </div>
           
         </div>
-         <div className="absolute right-10 bottom-5 w-13 bg-panel-2 border border-white/9 rounded-xl p-3 flex gap-2.5 items-start shadow-toast-deep">
-            <span className="w-7 h-7 rounded-lg bg-linear-to-br from-[#5b76ff] to-[#3f56e8] flex items-center justify-center shrink-0">
+         <div className="absolute right-10 bottom-5 w-13 bg-panel-2 border border-white/9 rounded-xl p-3 flex gap-2.5 items-start shadow-elevated">
+            <span className="w-7 h-7 rounded-lg bg-primary-gradient flex items-center justify-center shrink-0">
               <Icons.ZapIcon className="w-3.25 h-3.25 text-white" strokeWidth={1.8} />
             </span>
-            <div className="text-xs leading-[1.45]">
+            <div className="text-meta leading-snug">
               {toast.text}
               <span className="block text-muted-foreground text-2xs mt-px">{toast.time}</span>
             </div>
           </div>
 
-        <div className="relative z-2 flex items-center gap-2.5 text-muted-foreground text-xs">
+        <div className="relative z-2 flex items-center gap-2.5 text-muted-foreground text-meta-small">
           <Icons.CheckCircleIcon className="w-3.5 h-3.5 text-success/80" strokeWidth={1.8} />
           {trustText}
         </div>
@@ -138,7 +138,7 @@ export function AuthShell({
         <div className="w-full max-w-95">
           <Link
             href="/"
-            className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors duration-150 mb-6"
+            className="inline-flex items-center gap-1.5 text-meta-small font-medium text-muted-foreground hover:text-foreground transition-colors duration-150 mb-6"
           >
             <Icons.ArrowLeftIcon className="w-3.5 h-3.5" strokeWidth={1.8} />
             Back to FlowBoard

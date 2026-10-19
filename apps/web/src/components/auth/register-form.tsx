@@ -15,6 +15,7 @@ import { RegisterRequest } from "@flow/shared";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { type RegisterFormData } from "@/lib/auth-resolvers";
 import { refreshSession } from "@/hooks/useAuth";
+import { Button } from "@flow/ui";
 
 interface RegisterFormProps {
   redirect: string;
@@ -83,8 +84,8 @@ export function RegisterForm({ redirect }: RegisterFormProps) {
   return (
     <>
       <div className="mb-8">
-        <h1 className="text-2xl font-extrabold tracking-[-0.02em] mb-2">Create your account</h1>
-        <p className="text-sm text-muted">
+        <h1 className="text-auth-form-heading font-extrabold tracking-tight mb-2">Create your account</h1>
+        <p className="text-body text-muted">
           Already have an account?{" "}
           <Link href="/login" className="text-link font-semibold hover:underline">
             Log in
@@ -178,7 +179,7 @@ export function RegisterForm({ redirect }: RegisterFormProps) {
             {requirements.map((req) => (
               <div
                 key={req.label}
-                className="flex items-center gap-2 text-xs transition-colors duration-150"
+                className="flex items-center gap-2 text-meta-small transition-colors duration-150"
                 style={{
                   color: passwordTouched
                     ? req.test(password)
@@ -208,7 +209,7 @@ export function RegisterForm({ redirect }: RegisterFormProps) {
         )}
 
         <div className="mb-5">
-          <label className="flex items-start gap-2 text-sm text-muted leading-normal cursor-pointer">
+          <label className="flex items-start gap-2 text-label text-muted leading-normal cursor-pointer">
             <input
               type="checkbox"
               aria-invalid={errors.terms ? true : undefined}
@@ -228,18 +229,19 @@ export function RegisterForm({ redirect }: RegisterFormProps) {
             </span>
           </label>
           {errors.terms && (
-            <p id="terms-error" className="flex items-start gap-1.5 text-xs text-error leading-[1.45] mt-1.5">
+            <p id="terms-error" className="flex items-start gap-1.5 text-micro text-error leading-[1.45] mt-1.5">
               <Icons.AlertCircleIcon className="w-3 h-3 shrink-0 mt-0.5" />
               {errors.terms.message}
             </p>
           )}
         </div>
 
-        <button
+        <Button
           type="submit"
           disabled={isSubmitting}
           aria-busy={isSubmitting}
-          className="w-full inline-flex items-center justify-center gap-2 font-bold text-sm py-3 rounded-field border-none cursor-pointer text-white bg-linear-to-br from-[#5b76ff] to-[#3f56e8] shadow-lg hover:-translate-y-px hover:shadow-xl transition-all duration-150 mb-5 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-lg"
+          icon={<Icons.ArrowRightIcon className="w-3.5 h-3.5" strokeWidth={2} />}
+          className="w-full"
         >
           {isSubmitting ? (
             <>
@@ -249,13 +251,12 @@ export function RegisterForm({ redirect }: RegisterFormProps) {
           ) : (
             <>
               Create account
-              <Icons.ArrowRightIcon className="w-3.5 h-3.5" strokeWidth={2} />
             </>
           )}
-        </button>
+        </Button>
       </form>
 
-      <p className="text-xs text-muted-foreground text-center leading-normal">
+      <p className="text-meta text-muted-foreground text-center leading-normal">
         No credit card required · Free for teams up to 10
       </p>
     </>

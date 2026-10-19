@@ -6,8 +6,7 @@ import type { Board, Column, Task } from "@flow/shared";
 import { useBoards, usePresence } from "@/lib/boards-store";
 import { devUser, userById } from "@/lib/mock-data";
 import { TimeAgo } from "./time-ago";
-import { Tag } from "./tag";
-import { AvatarStack } from "./avatar";
+import { Tag, TagLabel, AvatarStack, Chip } from "@flow/ui";
 import { Icons } from "@flow/ui/icons";
 
 type Scope = "mine" | "all";
@@ -56,19 +55,19 @@ function TaskRow({ entry }: { entry: Entry }) {
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          router.push(`/boards/${entry.board.id}`);
+          router.push(`/dashboard/boards/${entry.board.id}`);
         }
       }}
-      className="group flex cursor-pointer items-center gap-3 rounded-[10px] border border-line-soft bg-panel p-3 transition-colors duration-150 hover:border-line hover:bg-panel-2"
+      className="group flex cursor-pointer items-center gap-3 rounded-md border border-line-soft bg-panel p-3 transition-colors duration-150 hover:border-line hover:bg-panel-2"
     >
       <span className="min-w-0 flex-1">
         <span className="flex min-w-0 items-center gap-2">
-          {entry.task.tag && <Tag type={entry.task.tag} />}
-          <span className={`truncate text-[13.5px] font-semibold ${done ? "text-muted-foreground line-through" : "text-foreground"}`}>
+          {entry.task.tag && <Tag type={entry.task.tag}>{TagLabel(entry.task.tag)}</Tag>}
+          <span className={`truncate text-label font-semibold ${done ? "text-muted-foreground line-through" : "text-foreground"}`}>
             {entry.task.title}
           </span>
         </span>
-        <span className="mt-[3px] flex items-center gap-1.5 text-[11.5px] text-muted-foreground">
+        <span className="mt-1 flex items-center gap-1.5 text-meta-small text-muted-foreground">
           <span className="flex-shrink-0">{entry.task.label}</span>
           <span aria-hidden>·</span>
           <span className="flex min-w-0 items-center gap-1 truncate">
@@ -85,8 +84,8 @@ function TaskRow({ entry }: { entry: Entry }) {
 
       {due && (
         <span
-          className={`flex-shrink-0 rounded-full px-[8px] py-[2px] text-[11px] font-semibold ${
-            due.overdue ? "bg-warning/10 text-warning" : "bg-white/[0.05] text-muted-foreground"
+          className={`flex-shrink-0 rounded-full px-2 py-0.5 text-micro font-semibold ${
+            due.overdue ? "bg-warning/10 text-warning" : "bg-white/5 text-muted-foreground"
           }`}
           aria-label={`Due: ${due.text}`}
         >
@@ -94,7 +93,7 @@ function TaskRow({ entry }: { entry: Entry }) {
         </span>
       )}
 
-      {assigneeUsers.length > 0 && <AvatarStack users={assigneeUsers} presence={presence} size={22} max={3} ringColor="#10131c" />}
+      {assigneeUsers.length > 0 && <AvatarStack users={assigneeUsers} presence={presence} size={22} max={3} ringColor="var(--color-panel)" />}
     </div>
   );
 }
@@ -103,8 +102,8 @@ function Section({ label, count, children }: { label: string; count: number; chi
   return (
     <section className="pt-7 first:pt-0">
       <div className="flex items-center gap-2.5">
-        <h2 className="text-[14.5px] font-bold">{label}</h2>
-        <span className="rounded-full border border-line bg-white/[0.04] px-[8px] py-[1.5px] text-[11.5px] font-semibold text-muted-foreground">
+        <h2 className="text-headline font-bold">{label}</h2>
+        <span className="rounded-full border border-line bg-white/4 px-2 py-0.5 text-meta-small font-semibold text-muted-foreground">
           {count}
         </span>
       </div>
@@ -165,19 +164,16 @@ export function MyTasks() {
     return (
       <div className="relative flex min-h-[70dvh] flex-col items-center justify-center p-6">
         <div
-          className="pointer-events-none absolute top-[-180px] left-1/2 h-[640px] w-[640px] -translate-x-1/2"
-          style={{
-            background: "radial-gradient(circle at 50% 50%, rgba(63,90,255,0.16), transparent 70%)",
-          }}
+          className="pointer-events-none absolute top-[-180px] left-1/2 h-[640px] w-[640px] -translate-x-1/2 globe-glow-tertiary"
         />
         <div className="relative flex flex-col items-center text-center">
-          <span className="flex h-14 w-14 items-center justify-center rounded-[14px] bg-white/[0.05] text-muted-foreground">
+          <span className="flex h-14 w-14 items-center justify-center rounded-lg bg-white/5 text-muted-foreground">
             <Icons.TasksIcon size={24} />
           </span>
-          <h1 className="mt-5 text-[22px] font-extrabold -tracking-[0.02em]">
+          <h1 className="mt-5 text-stub-heading font-extrabold tracking-tight">
             {scope === "mine" ? "Nothing assigned to you" : "No open tasks"}
           </h1>
-          <p className="mt-2 max-w-[330px] text-[14px] leading-[1.6] text-muted">
+          <p className="mt-2 max-w-[330px] text-body leading-relaxed text-muted">
             {scope === "mine"
               ? "Tasks your team assigns to you appear here, sorted by what's due first."
               : "Open tasks across your workspace land here, sorted by what's due first."}
@@ -191,24 +187,22 @@ export function MyTasks() {
     <div className="p-6 pb-10">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-baseline gap-2.5">
-          <h1 className="text-[22px] font-extrabold -tracking-[0.02em]">My Tasks</h1>
-          <span className="text-[13px] font-medium text-muted-foreground">
+          <h1 className="text-stub-heading font-extrabold tracking-tight">My Tasks</h1>
+          <span className="text-label font-medium text-muted-foreground">
             {scope === "mine" ? `${mineCount} assigned to you` : `${entries.length} open tasks`}
           </span>
         </div>
-        <div className="flex items-center gap-1 rounded-[10px] border border-line bg-white/[0.03] p-[3px]">
+        <div className="flex items-center gap-1 rounded-md border border-line bg-white/3 p-1">
           {SCOPE_OPTIONS.map((s) => (
-            <button
+            <Chip
               key={s.key}
-              type="button"
-              aria-pressed={scope === s.key}
+              variant={scope === s.key ? "active" : "ghost"}
               onClick={() => setScope(s.key)}
-              className={`rounded-[8px] px-3 py-[5px] text-[12.5px] font-semibold transition-colors duration-150 ${
-                scope === s.key ? "bg-white/[0.08] text-foreground" : "text-muted-foreground hover:text-foreground"
-              }`}
+              aria-pressed={scope === s.key}
+              className="text-meta"
             >
               {s.label}
-            </button>
+            </Chip>
           ))}
         </div>
       </div>

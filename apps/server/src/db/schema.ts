@@ -134,10 +134,31 @@ export const boardShares = pgTable("board_shares", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const notifications = pgTable("notifications", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  actorId: uuid("actor_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  kind: text("kind").notNull(),
+  boardId: uuid("board_id")
+    .notNull()
+    .references(() => boards.id, { onDelete: "cascade" }),
+  taskId: integer("task_id").references(() => tasks.id, { onDelete: "set null" }),
+  taskLabel: text("task_label"),
+  taskTitle: text("task_title"),
+  columnName: text("column_name"),
+  read: boolean("read").notNull().default(false),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const usersRelations = relations(users, ({ many }) => ({
   ownedBoards: many(boards),
   memberships: many(boardMembers),
   assignees: many(taskAssignees),
+  notifications: many(notifications),
 }));
 
 export const boardsRelations = relations(boards, ({ one, many }) => ({
@@ -179,3 +200,5 @@ export type BoardRow = typeof boards.$inferSelect;
 export type BoardColumnRow = typeof boardColumns.$inferSelect;
 export type TaskRow = typeof tasks.$inferSelect;
 export type CommentRow = typeof comments.$inferSelect;
+export type NotificationRow = typeof notifications.$inferSelect;
+export type NewNotificationRow = typeof notifications.$inferInsert;

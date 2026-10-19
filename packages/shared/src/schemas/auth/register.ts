@@ -6,6 +6,7 @@ export const RegisterRequest = z.object({
   username: usernameSchema.optional(),
   email: emailSchema,
   password: passwordSchema,
+  terms: z.boolean().refine((v) => v === true, { message: "You must accept the terms" }),
 })
 
 export type RegisterRequest = z.infer<typeof RegisterRequest>

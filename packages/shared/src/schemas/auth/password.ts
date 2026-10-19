@@ -16,7 +16,7 @@ export const usernameSchema = z.string().regex(usernameRegex, {
   message: "Username must be 3-30 characters and contain only letters, numbers, and underscores",
 });
 
-export const emailSchema = z.string().email().toLowerCase();
+export const emailSchema = z.email().toLowerCase();
 
 export interface PasswordRequirement {
   label: string;

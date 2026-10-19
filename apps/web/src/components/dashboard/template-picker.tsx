@@ -185,9 +185,9 @@ function TemplatePickerContent({ onClose, onTemplateSelected }: { onClose: () =>
       key={template.id}
       type="button"
       onClick={() => handleSelect(template)}
-      className="group flex flex-col items-start gap-2 rounded-[12px] border border-line bg-white/[0.02] p-4 text-left transition-all duration-150 hover:border-primary-2/50 hover:bg-primary-2/[0.03]"
+      className="group flex flex-col items-start gap-2 rounded-[12px] border border-line bg-panel p-4 text-left transition-all duration-150 hover:border-primary-2/50 hover:bg-primary/10"
     >
-      <div className="flex h-10 w-10 items-center justify-center rounded-[9px] bg-white/[0.05] text-primary group-hover:bg-primary/20">
+      <div className="flex h-10 w-10 items-center justify-center rounded-[9px] bg-panel-2 text-primary group-hover:bg-primary/20">
         {renderTemplateIcon(template.iconName)}
       </div>
       <div>
@@ -216,7 +216,7 @@ function TemplatePickerContent({ onClose, onTemplateSelected }: { onClose: () =>
           </svg>
         </button>
       </div>
-      <p className="text-[13px] leading-[1.55] text-muted mb-6">
+      <p className="text-body text-muted mb-6">
         Start with a template tailored to your workflow. All columns and sample tasks are fully editable.
       </p>
 <div className="grid grid-cols-2 gap-3 mb-4">
@@ -255,7 +255,7 @@ export function TemplatePicker({ onClose, onTemplateSelected }: { onClose: () =>
       <div
         role="dialog"
         aria-modal="true"
-        className="relative z-10 flex max-h-[85dvh] w-full max-w-[560px] flex-col overflow-hidden rounded-[14px] border border-white/[0.09] bg-panel-2 shadow-[0_30px_60px_rgba(0,0,0,0.55)]"
+        className="relative z-10 flex max-h-[85dvh] w-full max-w-[560px] flex-col overflow-hidden rounded-[14px] border border-line bg-panel-2 shadow-[0_30px_60px_rgba(0,0,0,0.55)]"
       >
         <button
           type="button"

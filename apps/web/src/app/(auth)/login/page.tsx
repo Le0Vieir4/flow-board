@@ -14,7 +14,7 @@ interface LoginPageProps {
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const { redirect } = await searchParams;
-  const redirectTo = redirect ?? "/boards";
+  const redirectTo = redirect ?? "/dashboard";
 
   return (
     <AuthShell

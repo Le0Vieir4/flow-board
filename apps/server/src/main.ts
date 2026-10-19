@@ -4,6 +4,7 @@ import { AppModule } from "./app.module";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { appRouter } from "./trpc/router";
 import { createContext } from "./trpc/init";
+import { RealtimeService } from "./realtime/realtime.service";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -22,6 +23,9 @@ async function bootstrap() {
       createContext: ({ req, res }) => createContext({ req, res }),
     }),
   );
+
+  const realtimeService = app.get(RealtimeService);
+  realtimeService.attachHttpServer(app.getHttpServer());
 
   const port = Number(process.env.PORT ?? 8000);
   console.log(`Server is running on port ${port}`);
