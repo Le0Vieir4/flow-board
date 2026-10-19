@@ -7,6 +7,7 @@ import { ClientMessage, ServerMessage } from "@flow/shared";
 import { verifyAccessToken, ACCESS_COOKIE } from "../auth/utils";
 import { BoardsService } from "../boards/boards.service";
 import { NotificationsService, NotificationKind } from "../notifications/notifications.service";
+import { CommentsService } from "../comments/comments.service";
 import { UsersService } from "../users/users.service";
 import { db } from "../db";
 import { taskAssignees, users, boardColumns, tasks } from "../db/schema";
@@ -133,6 +134,9 @@ export class RealtimeService implements OnModuleDestroy {
         case "task.moved":
           await this.handleTaskMove(ws, userId, message.clientId, message.boardId, message.taskId, message.toColumnId);
           break;
+        case "comment.created":
+          await this.handleCommentCreate(ws, userId, message.clientId, message.boardId, message.taskId, message.body);
+          break;
         default:
           break;
       }
@@ -252,6 +256,59 @@ export class RealtimeService implements OnModuleDestroy {
 
     this.broadcast(boardId, message, ws);
     this.logger.log(`WebSocket task.moved: user=${userId} task=${taskId} board=${boardId}`);
+  }
+
+  private async handleCommentCreate(
+    ws: WebSocket,
+    userId: string,
+    _clientId: string,
+    boardId: string,
+    taskId: number,
+    body: string,
+  ): Promise<void> {
+    await this.boardsService.assertBoardAccess(boardId, userId);
+
+    const comment = await new CommentsService().create({ taskId, userId, body });
+
+    const [task] = await db.select().from(tasks).where(eq(tasks.id, taskId));
+    if (!task || task.boardId !== boardId) throw new Error("Task not found");
+
+    // Notify assignees (except the author).
+    const assigneeRows = await db
+      .select({ userId: taskAssignees.userId })
+      .from(taskAssignees)
+      .where(eq(taskAssignees.taskId, taskId));
+    const now = new Date().toISOString();
+    for (const row of assigneeRows) {
+      if (row.userId === userId) continue;
+      await this.notificationsService.create({
+        userId: row.userId,
+        kind: "comment",
+        actorId: userId,
+        boardId,
+        taskId,
+        taskLabel: task.label,
+        taskTitle: task.title,
+        columnName: "",
+      });
+    }
+
+    const actor = await this.getUserInfo(userId);
+
+    const message: ServerMessage = {
+      type: "comment.created",
+      boardId,
+      taskId,
+      commentId: comment.id,
+      userId,
+      userName: actor.name,
+      userColor: actor.color,
+      body: comment.body,
+      at: now,
+    };
+
+    this.broadcast(boardId, message, ws);
+    this.logger.log(`WebSocket comment.created: user=${userId} task=${taskId} board=${boardId}`);
   }
 
   private onClose(ws: WebSocket): void {

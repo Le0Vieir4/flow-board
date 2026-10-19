@@ -6,7 +6,6 @@ import { useBoards } from "@/hooks/queries/boards";
 import { useUnreadCount } from "@/hooks/queries/notifications";
 import { usePresence } from "@/lib/boards-store";
 import { useAuth, clearAuth } from "@/hooks/useAuth";
-import { devUser } from "@/lib/mock-data";
 import { LogoMark } from "@/components/auth/auth-shell";
 import { Avatar } from "@flow/ui";
 import { Icons } from "@flow/ui/icons";
@@ -99,7 +98,7 @@ export function SidebarContent({
   const { data: boards = [] } = useBoards();
   const { data: unreadCount = 0 } = useUnreadCount();
   const { user } = useAuth();
-  const displayUser = user ?? devUser;
+  const displayUser = user;
   const pinned = boards.filter((b) => b.status !== "archived" && b.favorite);
   const activeBoardId = pathname.startsWith("/dashboard/boards/") ? pathname.split("/")[3] : undefined;
 
@@ -178,9 +177,9 @@ export function SidebarContent({
 
       <div className="border-t border-line px-5 py-4">
         <div className="flex items-center gap-[10px]">
-          <Avatar user={displayUser} size={28} ringColor="var(--color-panel)" />
+          <Avatar user={{ id: displayUser?.id ?? "", name: displayUser?.name ?? "User", color: displayUser?.color ?? "#4f6bff" }} size={28} ringColor="var(--color-panel)" />
           <div className="min-w-0 flex-1">
-            <div className="truncate text-label font-semibold">{displayUser.name}</div>
+            <div className="truncate text-label font-semibold">{displayUser?.name ?? "User"}</div>
             <div className="text-meta-small text-muted-foreground">Demo workspace</div>
           </div>
           <form action={async () => {

@@ -1,8 +1,7 @@
 import { useState } from "react";
-import { createBoard } from "@/lib/boards-store";
+import { useCreateBoard } from "@/hooks/queries/boards";
 import { Icons } from "@flow/ui/icons";
 import { openNewBoard } from "@/lib/commands";
-import { addColumn, nextTaskId, boardsState } from "@/lib/boards-store";
 
 const TEMPLATE_DEFINITIONS = [
   {
@@ -116,68 +115,14 @@ function renderTemplateIcon(iconName: string) {
 }
 
 function TemplatePickerContent({ onClose, onTemplateSelected }: { onClose: () => void; onTemplateSelected: (boardId: string) => void }) {
-  const [_selectedTemplate, setSelectedTemplate] = useState<unknown>(null);
-  
-  function handleSelect(template: Record<string, unknown>) {
-    setSelectedTemplate(template);
-    
-    // Create board with template name
-    const board = createBoard(template.name as string);
-    
-    // Get the newly created board from the store
-    const newBoard = boardsState.boards.find((b: { id: string }) => b.id === board.id);
-    
-    if (newBoard) {
-      // Update first column with template's first column
-      newBoard.columns[0] = { ...newBoard.columns[0], name: (template.columns as Array<{ name: string }>)[0].name };
-      
-      // Add sample tasks to first column
-      if ((template.columns as Array<{ sampleTasks?: Array<{ title: string; tag?: string; description?: string }> }>)[0].sampleTasks) {
-        (template.columns as Array<{ sampleTasks?: Array<{ title: string; tag?: string; description?: string }> }>)[0].sampleTasks!.forEach((task: { title: string; tag?: string; description?: string }) => {
-          const taskId = nextTaskId(newBoard);
-          const label = newBoard.idPrefix + "-" + (newBoard.columns[0].tasks.length + 1);
-          newBoard.columns[0].tasks.push({
-            id: taskId,
-            label,
-            title: task.title,
-            tag: task.tag as "electric" | "high" | "medium" | "low" | "design" | undefined,
-            description: task.description,
-            assignees: [],
-            createdAt: new Date().toISOString(),
-          });
-        });
-      }
-      
-      // Add remaining columns with sample tasks
-      for (let i = 1; i < (template.columns as Array<{ name: string; sampleTasks?: Array<{ title: string; tag?: string; description?: string }> }>).length; i++) {
-        const col = (template.columns as Array<{ name: string; sampleTasks?: Array<{ title: string; tag?: string; description?: string }> }>)[i];
-        addColumn(board.id, col.name);
-        
-        // Get the added column and add sample tasks
-        const updatedBoard = boardsState.boards.find((b: { id: string }) => b.id === board.id);
-        if (updatedBoard && col.sampleTasks) {
-          const addedCol = updatedBoard.columns.find((c: { name: string }) => c.name === col.name);
-          if (addedCol && col.sampleTasks) {
-            col.sampleTasks.forEach((task: { title: string; tag?: string; description?: string }) => {
-              const taskId = nextTaskId(updatedBoard);
-              const label = updatedBoard.idPrefix + "-" + (addedCol.tasks.length + 1);
-              addedCol.tasks.push({
-                id: taskId,
-                label,
-                title: task.title,
-                tag: task.tag as "electric" | "high" | "medium" | "low" | "design" | undefined,
-                description: task.description,
-                assignees: [],
-                createdAt: new Date().toISOString(),
-              });
-            });
-          }
-        }
-      }
-    }
-    
+  const createBoard = useCreateBoard();
+
+  async function handleSelect(template: Record<string, unknown>) {
+    const boardName = template.name as string;
+    await createBoard.mutateAsync(boardName);
+
     onClose();
-    onTemplateSelected(board.id);
+    onTemplateSelected("");
   }
 
   const templateCards = TEMPLATE_DEFINITIONS.map((template) => (
@@ -219,9 +164,9 @@ function TemplatePickerContent({ onClose, onTemplateSelected }: { onClose: () =>
       <p className="text-body text-muted mb-6">
         Start with a template tailored to your workflow. All columns and sample tasks are fully editable.
       </p>
-<div className="grid grid-cols-2 gap-3 mb-4">
-          {templateCards}
-        </div>
+      <div className="grid grid-cols-2 gap-3 mb-4">
+        {templateCards}
+      </div>
       <p className="text-center text-[12px] text-muted-foreground">
         Or{" "}
         <button
@@ -250,7 +195,7 @@ export function TemplatePicker({ onClose, onTemplateSelected }: { onClose: () =>
         type="button"
         aria-label="Dismiss dialog"
         className="absolute inset-0 cursor-default bg-black/60"
-        onClick={() => setIsOpen(false)}
+        onClick={onClose}
       />
       <div
         role="dialog"

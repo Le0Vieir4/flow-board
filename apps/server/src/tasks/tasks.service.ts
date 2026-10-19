@@ -13,8 +13,6 @@ export interface TaskDetail {
   description: string | null;
   tag: string | null;
   assignees: string[];
-  checklistDone: number | null;
-  checklistTotal: number | null;
   dueDate: string | null;
   position: number;
   createdAt: Date;
@@ -32,8 +30,6 @@ function mapTask(row: typeof tasks.$inferSelect, assignees: string[]): TaskDetai
     description: row.description ?? null,
     tag: row.tag ?? null,
     assignees,
-    checklistDone: row.checklistDone ?? null,
-    checklistTotal: row.checklistTotal ?? null,
     dueDate: row.dueDate ?? null,
     position: row.position,
     createdAt: row.createdAt,

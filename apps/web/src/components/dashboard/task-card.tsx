@@ -1,8 +1,8 @@
 "use client";
 
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import type { Task } from "@flow/shared";
-import { userById } from "@/lib/mock-data";
+import { useUsers } from "@/hooks/queries/users";
 import { shortDate } from "@/lib/time";
 import { AvatarStack } from "@flow/ui";
 import { Tag, TagLabel } from "@flow/ui";
@@ -21,7 +21,11 @@ export const TaskCard = memo(function TaskCard({
   onDragStart: () => void;
   onDragEnd: () => void;
 }) {
-  const assignees = task.assignees.map(userById);
+  const usersQuery = useUsers(task.assignees);
+  const assignees = useMemo(() => {
+    if (!usersQuery.data) return [];
+    return task.assignees.map((id) => usersQuery.data[id]).filter(Boolean);
+  }, [task.assignees, usersQuery.data]);
 
   const baseClasses = "w-full cursor-pointer rounded-card border border-line-soft bg-card p-card text-left transition-all duration-150 select-none hover:border-white/14 focus-visible:outline-primary-2";
 
@@ -53,12 +57,6 @@ export const TaskCard = memo(function TaskCard({
           )}
         </span>
         <span className="flex items-center gap-2">
-          {task.checklist && (
-            <span className="flex items-center gap-1.5 text-meta-small font-semibold text-muted">
-              <Icons.ChecklistIcon size={11} />
-              {task.checklist.done}/{task.checklist.total}
-            </span>
-          )}
           {assignees.length > 0 && (
             <AvatarStack users={assignees} size={18} max={3} />
           )}

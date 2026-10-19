@@ -3,10 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useBoard, useUpdateBoard, useAddColumn, useDeleteBoard, useDuplicateBoard, useMoveTask } from "@/hooks/queries/boards";
+import { useBoard, useUpdateBoard, useAddColumn, useDeleteBoard, useDuplicateBoard, useMoveTask, useAddMember } from "@/hooks/queries/boards";
 import { usePresence } from "@/lib/boards-store";
-import { userById } from "@/lib/mock-data";
-import { pushToast } from "@/lib/toast-store";
+import { useUsers } from "@/hooks/queries/users";
 import { useRealtime, useRealtimeStatus, announceTaskMove } from "@/hooks/useRealtime";
 import { BoardColumn } from "./column";
 import { TaskModal } from "./task-modal";
@@ -32,6 +31,7 @@ export function BoardView({ boardId }: { boardId: string }) {
   const deleteBoard = useDeleteBoard();
   const duplicateBoard = useDuplicateBoard();
   const moveTask = useMoveTask();
+  const addMember = useAddMember(boardId);
 
   const [openTaskId, setOpenTaskId] = useState<number | null>(null);
   const [editingName, setEditingName] = useState(false);
@@ -42,6 +42,8 @@ export function BoardView({ boardId }: { boardId: string }) {
   const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
   const [boardMenuOpen, setBoardMenuOpen] = useState(false);
   const [boardMenuAnchor, setBoardMenuAnchor] = useState<{ left: number; top: number; right: number } | null>(null);
+  const [addMemberOpen, setAddMemberOpen] = useState(false);
+  const [addMemberInput, setAddMemberInput] = useState("");
 
   useEffect(() => {
     if (!boardMenuOpen) return;
@@ -64,7 +66,11 @@ export function BoardView({ boardId }: { boardId: string }) {
     };
   }, [boardMenuOpen]);
 
-  const members = useMemo(() => (board ? board.members.map(userById) : []), [board]);
+  const usersQuery = useUsers(board?.members ?? []);
+  const members = useMemo(() => {
+    if (!board || !usersQuery.data) return [];
+    return board.members.map((id) => usersQuery.data[id]).filter(Boolean);
+  }, [board, usersQuery.data]);
   const openTask = useMemo(
     () => (openTaskId != null ? board?.columns.flatMap((c: { tasks: import("@flow/shared").Task[] }) => c.tasks).find((t: import("@flow/shared").Task) => t.id === openTaskId) : undefined),
     [board, openTaskId]
@@ -164,10 +170,66 @@ export function BoardView({ boardId }: { boardId: string }) {
           <Chip
             variant="default"
             icon={<Icons.InviteIcon size={15} />}
-            onClick={() => pushToast({ title: "Invite", body: "Team invites arrive with accounts & permissions.", time: "Just now" })}
+            onClick={() => setAddMemberOpen(true)}
           >
             Invite
           </Chip>
+          {addMemberOpen && (
+            <div className="flex items-center gap-2">
+              <input
+                autoFocus
+                value={addMemberInput}
+                onChange={(e) => setAddMemberInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    if (addMemberInput.trim()) {
+                      addMember.mutate(addMemberInput.trim(), {
+                        onSuccess: () => {
+                          setAddMemberOpen(false);
+                          setAddMemberInput("");
+                        },
+                      });
+                    }
+                  }
+                  if (e.key === "Escape") {
+                    setAddMemberOpen(false);
+                    setAddMemberInput("");
+                  }
+                }}
+                placeholder="User ID or email"
+                aria-label="Invite member"
+                className="rounded-badge border border-line bg-field px-2 py-1 text-label placeholder:text-muted-foreground focus:border-primary-2/60 focus:outline-none w-[140px]"
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  if (addMemberInput.trim()) {
+                    addMember.mutate(addMemberInput.trim(), {
+                      onSuccess: () => {
+                        setAddMemberOpen(false);
+                        setAddMemberInput("");
+                      },
+                    });
+                  }
+                }}
+                disabled={!addMemberInput.trim() || addMember.isPending}
+                className="flex h-7 w-7 items-center justify-center rounded-badge text-muted-foreground hover:bg-white/6 hover:text-foreground disabled:opacity-40"
+              >
+                <Icons.PlusIcon size={13} />
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setAddMemberOpen(false);
+                  setAddMemberInput("");
+                }}
+                className="flex h-7 w-7 items-center justify-center rounded-badge text-muted-foreground hover:bg-white/6 hover:text-foreground"
+              >
+                <Icons.CloseIcon size={13} />
+              </button>
+            </div>
+          )}
           <Chip
             variant="default"
             icon={<Icons.ListIcon size={14} />}

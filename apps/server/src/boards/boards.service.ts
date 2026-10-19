@@ -1,7 +1,7 @@
 import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { and, eq, desc } from "drizzle-orm";
 import { db } from "../db";
-import { boards, boardMembers, boardColumns, tasks, taskAssignees } from "../db/schema";
+import { boards, boardMembers, boardColumns, tasks, taskAssignees, taskChecklists, comments } from "../db/schema";
 
 export interface TaskDetail {
   id: number;
@@ -13,8 +13,8 @@ export interface TaskDetail {
   description: string | null;
   tag: string | null;
   assignees: string[];
-  checklistDone: number | null;
-  checklistTotal: number | null;
+  checklistId: string | null;
+  comments: { id: string; userId: string; body: string; at: string }[];
   dueDate: string | null;
   position: number;
   createdAt: Date;
@@ -56,7 +56,17 @@ function boardIdPrefix(name: string): string {
   );
 }
 
-function mapTask(row: typeof tasks.$inferSelect, assignees: string[]): TaskDetail {
+async function mapTask(row: typeof tasks.$inferSelect, assignees: string[]): Promise<TaskDetail> {
+  const [checklistRow] = await db
+    .select()
+    .from(taskChecklists)
+    .where(eq(taskChecklists.taskId, row.id));
+  const commentRows = await db
+    .select()
+    .from(comments)
+    .where(eq(comments.taskId, row.id))
+    .orderBy(desc(comments.createdAt));
+
   return {
     id: row.id,
     boardId: row.boardId,
@@ -67,8 +77,13 @@ function mapTask(row: typeof tasks.$inferSelect, assignees: string[]): TaskDetai
     description: row.description ?? null,
     tag: row.tag ?? null,
     assignees,
-    checklistDone: row.checklistDone ?? null,
-    checklistTotal: row.checklistTotal ?? null,
+    checklistId: checklistRow?.id ?? null,
+    comments: commentRows.map((c) => ({
+      id: c.id,
+      userId: c.userId,
+      body: c.body,
+      at: c.createdAt.toISOString(),
+    })),
     dueDate: row.dueDate ?? null,
     position: row.position,
     createdAt: row.createdAt,
@@ -126,7 +141,7 @@ export class BoardsService {
           .select({ userId: taskAssignees.userId })
           .from(taskAssignees)
           .where(eq(taskAssignees.taskId, task.id));
-        taskDetails.push(mapTask(task, assigneeRows.map((a) => a.userId)));
+        taskDetails.push(await mapTask(task, assigneeRows.map((a) => a.userId)));
       }
       columnDetails.push({
         id: column.id,

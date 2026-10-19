@@ -1,11 +1,7 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
-import { devUser } from "@/lib/mock-data";
-import { useAuth } from "@/hooks/useAuth";
 import { useNewBoardModalState } from "@/lib/commands";
-import { Avatar } from "@flow/ui";
-import { LogoMark } from "@/components/auth/auth-shell";
 import { Icons } from "@flow/ui/icons";
 import { SidebarContent, Sidebar } from "./sidebar";
 import { NewBoardModal } from "./new-board-modal";
@@ -16,8 +12,6 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { open: newBoardOpen, setOpen: setNewBoardOpen } = useNewBoardModalState();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
-  const { user } = useAuth();
-  const displayUser = user ?? devUser;
 
   useEffect(() => {
     if (!drawerOpen) return;

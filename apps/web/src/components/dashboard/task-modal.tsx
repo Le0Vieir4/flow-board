@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Board, TagType, Task } from "@flow/shared";
-import { useUpdateTask, useDeleteTask, useMoveTask } from "@/hooks/queries/boards";
-import { userById } from "@/lib/mock-data";
+import { useUpdateTask, useDeleteTask, useMoveTask, useAddComment, useComments, useSetChecklist, useChecklist } from "@/hooks/queries/boards";
+import { useUsers } from "@/hooks/queries/users";
+import { useAuth } from "@/hooks/useAuth";
 import { announceTaskMove } from "@/hooks/useRealtime";
 import { Modal } from "@flow/ui";
 import { Avatar, Button, Chip } from "@flow/ui";
@@ -33,7 +34,8 @@ function AssigneePicker({ board, task }: { board: Board; task: Task }) {
   const [anchor, setAnchor] = useState<{ left: number; top: number; right: number } | null>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
-  const members = board.members.map(userById);
+  const usersQuery = useUsers(board.members);
+  const members = usersQuery.data ? board.members.map((id) => usersQuery.data[id]).filter(Boolean) : [];
   const updateTask = useUpdateTask(task.id);
 
   function toggleOpen() {
@@ -133,14 +135,27 @@ export function TaskModal({
   task: Task;
   onClose: () => void;
 }) {
+  const { user } = useAuth();
+  const commentsData = useComments(task.id);
+  const commentCount = commentsData.data?.length ?? 0;
+  const allUserIds = useMemo(() => {
+    const ids = new Set<string>(task.assignees);
+    for (const c of commentsData.data ?? []) ids.add(c.userId);
+    return [...ids];
+  }, [task.assignees, commentsData.data]);
+  const usersQuery = useUsers(allUserIds);
+  const userMap = usersQuery.data ?? {};
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description ?? "");
   const [comment, setComment] = useState("");
   const updateTask = useUpdateTask(task.id);
   const deleteTask = useDeleteTask();
   const moveTask = useMoveTask();
+  const addComment = useAddComment();
+  const setChecklist = useSetChecklist();
+  const checklist = useChecklist(task.id);
   const column = board.columns.find((c: import("@flow/shared").Column) => c.tasks.some((t: import("@flow/shared").Task) => t.id === task.id));
-  const assignees = task.assignees.map(userById);
+  const assignees = task.assignees.map((id) => userMap[id]).filter(Boolean);
 
   function move(toColumnId: string) {
     moveTask.mutate({ boardId: board.id, taskId: task.id, toColumnId });
@@ -148,20 +163,19 @@ export function TaskModal({
   }
 
   function toggleChecklist() {
-    const cl = task.checklist;
-    if (!cl) return;
-    updateTask.mutate({ checklist: { ...cl, done: cl.done >= cl.total ? 0 : cl.done + 1 } });
+    const current = checklist.data;
+    if (!current) return;
+    setChecklist.mutate({
+      taskId: task.id,
+      done: current.done >= current.total ? 0 : current.done + 1,
+      total: current.total,
+    });
   }
 
-  function addComment() {
+  function handleAddComment() {
     const body = comment.trim();
     if (!body) return;
-    updateTask.mutate({
-      comments: [
-        ...(task.comments ?? []),
-        { id: `c${Date.now()}`, userId: "u-you", body, at: new Date().toISOString() },
-      ],
-    });
+    addComment.mutate({ taskId: task.id, body });
     setComment("");
   }
 
@@ -223,11 +237,11 @@ export function TaskModal({
               icon={<Icons.ChecklistIcon size={13} />}
               className="w-full justify-between text-label"
               onClick={toggleChecklist}
-              disabled={!task.checklist}
+              disabled={!checklist.data}
             >
               <span className="flex items-center gap-2">
                 <Icons.ChecklistIcon size={13} />
-                {task.checklist ? `${task.checklist.done} of ${task.checklist.total}` : "Not started"}
+                {checklist.data ? `${checklist.data.done} of ${checklist.data.total}` : "Not started"}
               </span>
               <span className="text-meta font-semibold text-link">Toggle +1</span>
             </Chip>
@@ -248,11 +262,11 @@ export function TaskModal({
 
         <div className="mt-5">
           <div className="mb-1.5 text-meta-small font-semibold text-muted-foreground">
-            Comments {task.comments && task.comments.length > 0 ? `(${task.comments.length})` : ""}
+            Comments {commentCount > 0 ? `(${commentCount})` : ""}
           </div>
           <div className="space-y-4">
-            {(task.comments ?? []).map((c: import("@flow/shared").Comment) => {
-              const author = userById(c.userId);
+            {(commentsData.data ?? []).map((c: { id: string; userId: string; body: string; at: string }) => {
+              const author = userMap[c.userId];
               return (
                 <div key={c.id} className="flex items-start gap-2.5">
                   <Avatar user={author} size={24} />
@@ -268,18 +282,18 @@ export function TaskModal({
                 </div>
               );
             })}
-            {!task.comments || task.comments.length === 0 ? (
+            {!commentsData.data || commentsData.data.length === 0 ? (
               <p className="text-label text-muted-foreground">No comments yet — this thread is open.</p>
             ) : null}
           </div>
           <div className="mt-3 flex items-center gap-2.5">
-            <Avatar user={userById("u-you")} size={26} />
+            <Avatar user={{ id: user?.id ?? "u-you", name: user?.name ?? "You", color: user?.color ?? "#4f6bff" }} size={26} />
             <div className="flex min-w-0 flex-1 items-center gap-2 rounded-button border border-line bg-field px-3 py-2 focus-within:border-primary-2/60">
               <input
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") addComment();
+                  if (e.key === "Enter") handleAddComment();
                 }}
                 placeholder="Write a comment…"
                 aria-label="Write a comment"
@@ -287,8 +301,8 @@ export function TaskModal({
               />
               <Button
                 type="button"
-                onClick={addComment}
-                disabled={!comment.trim()}
+                onClick={handleAddComment}
+                disabled={!comment.trim() || addComment.isPending}
                 variant="primary"
                 size="sm"
                 aria-label="Send comment"

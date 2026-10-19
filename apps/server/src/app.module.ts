@@ -7,6 +7,9 @@ import { TasksModule } from "./tasks/tasks.module";
 import { UsersModule } from "./users/users.module";
 import { NotificationsModule } from "./notifications/notifications.module";
 import { RealtimeModule } from "./realtime/realtime.module";
+import { CommentsModule } from "./comments/comments.module";
+import { ChecklistsModule } from "./checklists/checklists.module";
+import { MembersModule } from "./members/members.module";
 
 @Module({
   imports: [
@@ -18,6 +21,9 @@ import { RealtimeModule } from "./realtime/realtime.module";
     TasksModule,
     NotificationsModule,
     RealtimeModule,
+    CommentsModule,
+    ChecklistsModule,
+    MembersModule,
   ],
   controllers: [],
   providers: [],

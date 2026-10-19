@@ -5,12 +5,22 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Board } from "@flow/shared";
 import { useBoards, useUpdateBoard, useCreateBoard } from "@/hooks/queries/boards";
-import { SECTIONS, countTasks, userById } from "@/lib/mock-data";
+import { useUsers } from "@/hooks/queries/users";
 import { usePresence } from "@/lib/boards-store";
 import { AvatarStack } from "./avatar";
 import { TimeAgo } from "./time-ago";
 import { Icons } from "@flow/ui/icons";
 import { TemplatePicker } from "./template-picker";
+
+const SECTIONS: { key: Board["status"]; label: string }[] = [
+  { key: "active", label: "Active" },
+  { key: "on-hold", label: "On hold" },
+  { key: "archived", label: "Archived" },
+];
+
+function countTasks(board: Board): number {
+  return board.columns.reduce((acc, c) => acc + c.tasks.length, 0);
+}
 
 function ColumnStrip({ board }: { board: import("@flow/shared").Board }) {
   const max = Math.max(1, ...board.columns.map((c: import("@flow/shared").Column) => c.tasks.length));
@@ -35,7 +45,8 @@ function ColumnStrip({ board }: { board: import("@flow/shared").Board }) {
 function BoardCard({ board }: { board: Board }) {
   const router = useRouter();
   const presence = usePresence(board.id);
-  const members = board.members.map(userById);
+  const usersQuery = useUsers(board.members);
+  const members = usersQuery.data ? board.members.map((id) => usersQuery.data[id]) : [];
   const [fresh, setFresh] = useState(false);
   const updateBoard = useUpdateBoard(board.id);
 
@@ -97,7 +108,7 @@ function BoardCard({ board }: { board: Board }) {
       <ColumnStrip board={board} />
 
       <div className="mt-4 flex items-center justify-between">
-        <AvatarStack users={members} presence={presence} size={20} ringColor="#10131c" />
+        <AvatarStack users={members.filter(Boolean)} presence={presence} size={20} ringColor="#10131c" />
         <span className={`flex items-center gap-[6px] text-meta-small font-medium ${fresh ? "text-muted" : "text-muted-foreground"}`}>
           {fresh && <span className="h-[5px] w-[5px] rounded-full bg-success" aria-hidden />}
           Updated <TimeAgo iso={board.updatedAt} />

@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Board, Column, Task } from "@flow/shared";
 import { useBoards, usePresence } from "@/lib/boards-store";
-import { devUser, userById } from "@/lib/mock-data";
+import { useAuth } from "@/hooks/useAuth";
+import { useUsers } from "@/hooks/queries/users";
 import { TimeAgo } from "./time-ago";
 import { Tag, TagLabel, AvatarStack, Chip } from "@flow/ui";
 import { Icons } from "@flow/ui/icons";
@@ -40,18 +41,19 @@ const BUCKETS = [
   { key: "someday", label: "No due date", match: (due?: string) => !due },
 ] as const;
 
-function TaskRow({ entry }: { entry: Entry }) {
+function TaskRow({ entry, userMap }: { entry: Entry; userMap: Record<string, { id: string; name: string; color: string }> }) {
   const router = useRouter();
   const presence = usePresence(entry.board.id);
-  const assigneeUsers = entry.task.assignees.map(userById);
+  const assigneeUsers = entry.task.assignees
+    .map((id) => userMap[id])
+    .filter(Boolean);
   const due = dueLabel(entry.task.dueDate);
-  const done = entry.task.checklist ? entry.task.checklist.done >= entry.task.checklist.total : false;
 
   return (
     <div
       role="link"
       tabIndex={0}
-      onClick={() => router.push(`/boards/${entry.board.id}`)}
+      onClick={() => router.push(`/dashboard/boards/${entry.board.id}`)}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
@@ -63,9 +65,7 @@ function TaskRow({ entry }: { entry: Entry }) {
       <span className="min-w-0 flex-1">
         <span className="flex min-w-0 items-center gap-2">
           {entry.task.tag && <Tag type={entry.task.tag}>{TagLabel(entry.task.tag)}</Tag>}
-          <span className={`truncate text-label font-semibold ${done ? "text-muted-foreground line-through" : "text-foreground"}`}>
-            {entry.task.title}
-          </span>
+          <span className="truncate text-label font-semibold">{entry.task.title}</span>
         </span>
         <span className="mt-1 flex items-center gap-1.5 text-meta-small text-muted-foreground">
           <span className="flex-shrink-0">{entry.task.label}</span>
@@ -117,14 +117,13 @@ const SCOPE_OPTIONS: { key: Scope; label: string }[] = [
   { key: "all", label: "All tasks" },
 ];
 
-function collectEntries(boards: Board[], scope: Scope): Entry[] {
+function collectEntries(boards: Board[], scope: Scope, currentUserId: string | undefined): Entry[] {
   const list: Entry[] = [];
   for (const board of boards) {
     if (board.status === "archived") continue;
     for (const column of board.columns) {
       for (const task of column.tasks) {
-        if (scope === "mine" && !task.assignees.includes(devUser.id)) continue;
-        if (task.checklist && task.checklist.done >= task.checklist.total) continue;
+        if (scope === "mine" && !task.assignees.includes(currentUserId!)) continue;
         list.push({ task, board, column });
       }
     }
@@ -132,14 +131,13 @@ function collectEntries(boards: Board[], scope: Scope): Entry[] {
   return list.sort((a, b) => (a.task.createdAt < b.task.createdAt ? 1 : -1));
 }
 
-function collectOpenCount(boards: Board[]): number {
+function collectOpenCount(boards: Board[], currentUserId: string | undefined): number {
   let count = 0;
   for (const board of boards) {
     if (board.status === "archived") continue;
     for (const column of board.columns) {
       for (const task of column.tasks) {
-        if (!task.assignees.includes(devUser.id)) continue;
-        if (task.checklist && task.checklist.done >= task.checklist.total) continue;
+        if (!task.assignees.includes(currentUserId!)) continue;
         count += 1;
       }
     }
@@ -147,18 +145,39 @@ function collectOpenCount(boards: Board[]): number {
   return count;
 }
 
+function useMemoUserIds(boards: Board[] | undefined): string[] {
+  return useMemo(() => {
+    const ids = new Set<string>();
+    if (!boards) return [];
+    for (const board of boards) {
+      for (const column of board.columns) {
+        for (const task of column.tasks) {
+          for (const id of task.assignees) ids.add(id);
+        }
+      }
+    }
+    return [...ids];
+  }, [boards]);
+}
+
 export function MyTasks() {
-  const boards = useBoards();
+  const boardsResult = useBoards();
+  const boards = boardsResult.data ?? [];
+  const { user } = useAuth();
   const [scope, setScope] = useState<Scope>("mine");
   const today = dateKey(new Date());
 
-  const entries = collectEntries(boards, scope);
+  const allUserIds = useMemoUserIds(boards);
+  const usersQuery = useUsers(allUserIds);
+  const userMap = usersQuery.data ?? {};
+
+  const entries = collectEntries(boards, scope, user?.id);
 
   const sections = BUCKETS.map((b) => ({ ...b, entries: entries.filter((e) => b.match(e.task.dueDate, today)) })).filter(
     (s) => s.entries.length > 0
   );
 
-  const mineCount = collectOpenCount(boards);
+  const mineCount = collectOpenCount(boards, user?.id);
 
   if (entries.length === 0) {
     return (
@@ -211,7 +230,7 @@ export function MyTasks() {
         {sections.map((s) => (
           <Section key={s.key} label={s.label} count={s.entries.length}>
             {s.entries.map((e) => (
-              <TaskRow key={`${e.board.id}-${e.task.id}`} entry={e} />
+              <TaskRow key={`${e.board.id}-${e.task.id}`} entry={e} userMap={userMap} />
             ))}
           </Section>
         ))}

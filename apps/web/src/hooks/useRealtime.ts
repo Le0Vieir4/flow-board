@@ -3,7 +3,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import type { ServerMessage } from "@flow/shared";
 import { applyInboundMove, setPresence } from "@/lib/boards-store";
 import { pushToast } from "@/lib/toast-store";
-import { userById } from "@/lib/mock-data";
 
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL ?? "ws://localhost:8000/ws";
 
@@ -18,9 +17,14 @@ let failed = false;
 let manualClose = false;
 
 let invalidateNotifications: (() => void) | null = null;
+let invalidateComments: ((taskId: number) => void) | null = null;
 
 export function setNotificationsInvalidator(fn: () => void) {
   invalidateNotifications = fn;
+}
+
+export function setCommentsInvalidator(fn: (taskId: number) => void) {
+  invalidateComments = fn;
 }
 
 const listeners = new Set<() => void>();
@@ -91,15 +95,24 @@ function handleInbound(msg: unknown) {
   switch (m.type) {
     case "task.moved":
       if (m.taskId !== undefined && m.toColumnId) {
-        applyInboundMove(m.boardId, m.taskId, m.toColumnId);
-        const actor = m.userId ? userById(m.userId) : undefined;
+        applyInboundMove();
         pushToast({
           title: `Task moved to ${m.toColumnName}`,
           body: m.taskLabel ? `${m.userName ?? "Someone"} · ${m.taskLabel}` : m.userName ?? "Someone",
           time: "Just now",
-          userColor: actor?.color,
         });
         invalidateNotifications?.();
+      }
+      break;
+    case "comment.created":
+      if (m.taskId !== undefined && m.body) {
+        invalidateComments?.(m.taskId);
+        pushToast({
+          title: `New comment on ${m.taskId}`,
+          body: `${m.userName ?? "Someone"} commented`,
+          time: "Just now",
+          userColor: m.userColor,
+        });
       }
       break;
     case "presence":
@@ -117,6 +130,12 @@ export function useRealtime(boardId?: string) {
     setNotificationsInvalidator(() => {
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
       queryClient.invalidateQueries({ queryKey: ["notifications", "unread"] });
+    });
+  }, [queryClient]);
+
+  useEffect(() => {
+    setCommentsInvalidator((taskId) => {
+      queryClient.invalidateQueries({ queryKey: ["comments", taskId] });
     });
   }, [queryClient]);
 

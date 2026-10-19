@@ -11,7 +11,8 @@
     "plugins": [{ "name": "next" }],
     "paths": {
       "@/*": ["./src/*"],
-      "@flow/ui/*": ["../../packages/ui/src/*"]
+      "@flow/ui/*": ["../../packages/ui/src/*"],
+      "@flow/server/trpc": ["../../apps/server/src/trpc/router.ts"]
     }
   },
   "include": [

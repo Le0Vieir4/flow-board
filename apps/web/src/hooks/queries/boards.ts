@@ -101,7 +101,7 @@ export function useUpdateTask(taskId: number) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (input: Partial<Task>) => {
-      const { id, checklist, comments, ...rest } = input;
+      const { id: _id, comments: _comments, ...rest } = input;
       return trpcClient.tasks.update.mutate({ id: taskId, ...(rest as Record<string, unknown>) });
     },
     onMutate: async (input) => {
@@ -175,6 +175,88 @@ export function useMoveTask() {
     },
     onSettled: () => {
       qc.invalidateQueries({ queryKey: BOARDS_KEY });
+    },
+  });
+}
+
+export const COMMENTS_KEY = (taskId: number) => ["comments", taskId];
+
+export function useComments(taskId: number) {
+  return useQuery({
+    queryKey: COMMENTS_KEY(taskId),
+    queryFn: () => trpcClient.comments.getAll.query({ taskId }),
+    enabled: !!taskId,
+  });
+}
+
+export function useAddComment() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { taskId: number; body: string }) =>
+      trpcClient.comments.create.mutate(input),
+    onMutate: async (input) => {
+      await qc.cancelQueries({ queryKey: COMMENTS_KEY(input.taskId) });
+      const previous = qc.getQueryData(COMMENTS_KEY(input.taskId));
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      qc.setQueryData(COMMENTS_KEY(_vars.taskId), context?.previous);
+    },
+    onSettled: (_data, _error, input) => {
+      qc.invalidateQueries({ queryKey: COMMENTS_KEY(input.taskId) });
+    },
+  });
+}
+
+export const CHECKLIST_KEY = (taskId: number) => ["checklist", taskId];
+
+export function useChecklist(taskId: number) {
+  return useQuery({
+    queryKey: CHECKLIST_KEY(taskId),
+    queryFn: () => trpcClient.checklists.get.query({ taskId }),
+    enabled: !!taskId,
+  });
+}
+
+export function useSetChecklist() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { taskId: number; done: number; total: number }) =>
+      trpcClient.checklists.set.mutate(input),
+    onSuccess: (_data, input) => {
+      qc.invalidateQueries({ queryKey: CHECKLIST_KEY(input.taskId) });
+    },
+  });
+}
+
+export const MEMBERS_KEY = (boardId: string) => ["members", boardId];
+
+export function useMembers(boardId: string) {
+  return useQuery({
+    queryKey: MEMBERS_KEY(boardId),
+    queryFn: () => trpcClient.members.getAll.query({ boardId }),
+    enabled: !!boardId,
+  });
+}
+
+export function useAddMember(boardId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (userId: string) => trpcClient.members.add.mutate({ boardId, userId }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: MEMBERS_KEY(boardId) });
+      qc.invalidateQueries({ queryKey: ["board", boardId] });
+    },
+  });
+}
+
+export function useRemoveMember(boardId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (userId: string) => trpcClient.members.remove.mutate({ boardId, userId }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: MEMBERS_KEY(boardId) });
+      qc.invalidateQueries({ queryKey: ["board", boardId] });
     },
   });
 }

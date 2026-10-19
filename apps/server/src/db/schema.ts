@@ -78,8 +78,6 @@ export const tasks = pgTable(
     title: text("title").notNull(),
     description: text("description"),
     tag: text("tag"),
-    checklistDone: integer("checklist_done"),
-    checklistTotal: integer("checklist_total"),
     dueDate: date("due_date"),
     position: integer("position").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -100,6 +98,20 @@ export const taskAssignees = pgTable(
   },
   (t) => [primaryKey({ columns: [t.taskId, t.userId] })]
 );
+
+export const taskChecklists = pgTable("task_checklists", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  taskId: integer("task_id")
+    .notNull()
+    .references(() => tasks.id, { onDelete: "cascade" }),
+  done: integer("done").notNull().default(0),
+  total: integer("total").notNull().default(0),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const taskChecklistsRelations = relations(taskChecklists, ({ one }) => ({
+  task: one(tasks, { fields: [taskChecklists.taskId], references: [tasks.id] }),
+}));
 
 export const comments = pgTable("comments", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -182,6 +194,7 @@ export const tasksRelations = relations(tasks, ({ one, many }) => ({
   column: one(boardColumns, { fields: [tasks.columnId], references: [boardColumns.id] }),
   assignees: many(taskAssignees),
   comments: many(comments),
+  checklist: many(taskChecklists),
 }));
 
 export const taskAssigneesRelations = relations(taskAssignees, ({ one }) => ({
@@ -199,6 +212,8 @@ export type NewUserRow = typeof users.$inferInsert;
 export type BoardRow = typeof boards.$inferSelect;
 export type BoardColumnRow = typeof boardColumns.$inferSelect;
 export type TaskRow = typeof tasks.$inferSelect;
+export type TaskChecklistRow = typeof taskChecklists.$inferSelect;
+export type NewTaskChecklistRow = typeof taskChecklists.$inferInsert;
 export type CommentRow = typeof comments.$inferSelect;
 export type NotificationRow = typeof notifications.$inferSelect;
 export type NewNotificationRow = typeof notifications.$inferInsert;

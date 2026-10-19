@@ -18,6 +18,16 @@ export const ClientMessage = z.discriminatedUnion("type", [
     taskId: z.number().int(),
     toColumnId: z.string(),
   }),
+  z.object({
+    type: z.literal("comment.created"),
+    clientId: z.string(),
+    boardId: z.string(),
+    taskId: z.number().int(),
+    commentId: z.string(),
+    userId: z.string(),
+    userName: z.string(),
+    body: z.string(),
+  }),
 ])
 
 export const ServerMessage = z.discriminatedUnion("type", [
@@ -31,6 +41,18 @@ export const ServerMessage = z.discriminatedUnion("type", [
     userId: z.string().optional(),
     userName: z.string().optional(),
     taskLabel: z.string().optional(),
+    at: z.string().optional(),
+  }),
+  z.object({
+    type: z.literal("comment.created"),
+    clientId: z.string().optional(),
+    boardId: z.string(),
+    taskId: z.number().int().optional(),
+    commentId: z.string().optional(),
+    userId: z.string().optional(),
+    userName: z.string().optional(),
+    userColor: z.string().optional(),
+    body: z.string().optional(),
     at: z.string().optional(),
   }),
   z.object({
