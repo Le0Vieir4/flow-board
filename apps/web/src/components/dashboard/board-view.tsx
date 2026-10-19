@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useBoard, useUpdateBoard, useAddColumn, useDeleteBoard, useDuplicateBoard, useMoveTask, useAddMember } from "@/hooks/queries/boards";
 import { usePresence } from "@/lib/boards-store";
 import { useUsers } from "@/hooks/queries/users";
 import { useRealtime, useRealtimeStatus, announceTaskMove } from "@/hooks/useRealtime";
+import { useClickOutside } from "@/hooks/useClickOutside";
 import { BoardColumn } from "./column";
 import { TaskModal } from "./task-modal";
 import { TimeAgo } from "./time-ago";
@@ -44,27 +45,10 @@ export function BoardView({ boardId }: { boardId: string }) {
   const [boardMenuAnchor, setBoardMenuAnchor] = useState<{ left: number; top: number; right: number } | null>(null);
   const [addMemberOpen, setAddMemberOpen] = useState(false);
   const [addMemberInput, setAddMemberInput] = useState("");
+  const menuRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!boardMenuOpen) return;
-    const onDown = (e: MouseEvent) => {
-      const target = e.target as Node;
-      const menu = document.querySelector('[data-board-menu]');
-      const trigger = document.querySelector('[data-board-menu-trigger]');
-      if (menu && !menu.contains(target) && trigger && !trigger.contains(target)) {
-        setBoardMenuOpen(false);
-      }
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setBoardMenuOpen(false);
-    };
-    window.addEventListener("mousedown", onDown);
-    window.addEventListener("keydown", onKey);
-    return () => {
-      window.removeEventListener("mousedown", onDown);
-      window.removeEventListener("keydown", onKey);
-    };
-  }, [boardMenuOpen]);
+  useClickOutside(boardMenuOpen, () => setBoardMenuOpen(false), menuRef, triggerRef);
 
   const usersQuery = useUsers(board?.members ?? []);
   const members = useMemo(() => {
@@ -292,7 +276,7 @@ export function BoardView({ boardId }: { boardId: string }) {
         >
           <Icons.StarIcon size={16} fill={board.favorite ? "currentColor" : "none"} className={board.favorite ? "text-star" : ""} />
         </button>
-        <div className="relative" data-board-menu-trigger>
+        <div className="relative" data-board-menu-trigger ref={triggerRef}>
           <button
             type="button"
             aria-label="Board options"
@@ -309,6 +293,7 @@ export function BoardView({ boardId }: { boardId: string }) {
           </button>
           {boardMenuOpen && boardMenuAnchor && (
             <div
+              ref={menuRef}
               data-board-menu
               className="fixed z-50 w-[200px] rounded-lg border border-line bg-panel-2 p-1 shadow-dropdown"
               style={{

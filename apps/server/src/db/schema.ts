@@ -224,6 +224,21 @@ export const commentsRelations = relations(comments, ({ one }) => ({
   user: one(users, { fields: [comments.userId], references: [users.id] }),
 }));
 
+export const refreshTokensRelations = relations(refreshTokens, ({ one }) => ({
+  user: one(users, { fields: [refreshTokens.userId], references: [users.id] }),
+}));
+
+export const boardSharesRelations = relations(boardShares, ({ one }) => ({
+  board: one(boards, { fields: [boardShares.boardId], references: [boards.id] }),
+}));
+
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+  user: one(users, { fields: [notifications.userId], references: [users.id] }),
+  actor: one(users, { fields: [notifications.actorId], references: [users.id] }),
+  board: one(boards, { fields: [notifications.boardId], references: [boards.id] }),
+  task: one(tasks, { fields: [notifications.taskId], references: [tasks.id] }),
+}));
+
 export type UserRow = typeof users.$inferSelect;
 export type NewUserRow = typeof users.$inferInsert;
 export type BoardRow = typeof boards.$inferSelect;
@@ -236,3 +251,11 @@ export type NotificationRow = typeof notifications.$inferSelect;
 export type NewNotificationRow = typeof notifications.$inferInsert;
 export type VerificationTokenRow = typeof verificationTokens.$inferSelect;
 export type NewVerificationTokenRow = typeof verificationTokens.$inferInsert;
+export type BoardMemberRow = typeof boardMembers.$inferSelect;
+export type NewBoardMemberRow = typeof boardMembers.$inferInsert;
+export type BoardShareRow = typeof boardShares.$inferSelect;
+export type NewBoardShareRow = typeof boardShares.$inferInsert;
+export type RefreshTokenRow = typeof refreshTokens.$inferSelect;
+export type NewRefreshTokenRow = typeof refreshTokens.$inferInsert;
+export type TaskAssigneeRow = typeof taskAssignees.$inferSelect;
+export type NewTaskAssigneeRow = typeof taskAssignees.$inferInsert;

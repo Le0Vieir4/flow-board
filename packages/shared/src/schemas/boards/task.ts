@@ -16,7 +16,6 @@ export const Task = z.object({
   description: z.string().optional(),
   tag: TagType.optional(),
   assignees: z.array(z.string()),
-  checklistId: z.string().optional(),
   dueDate: z.string().optional(),
   createdAt: z.string(),
   comments: z.array(Comment).optional(),

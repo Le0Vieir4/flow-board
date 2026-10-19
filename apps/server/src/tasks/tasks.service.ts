@@ -1,7 +1,8 @@
-import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
-import { and, eq } from "drizzle-orm";
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { eq } from "drizzle-orm";
 import { db } from "../db";
-import { boards, boardColumns, boardMembers, tasks, taskAssignees } from "../db/schema";
+import { nextPosition, requireBoardMember } from "../common/board-access";
+import { boardColumns, tasks, taskAssignees } from "../db/schema";
 
 export interface TaskDetail {
   id: number;
@@ -37,22 +38,6 @@ function mapTask(row: typeof tasks.$inferSelect, assignees: string[]): TaskDetai
   };
 }
 
-function assertBoardAccess(board: typeof boards.$inferSelect, userId: string) {
-  if (board.ownerId !== userId) throw new ForbiddenException("Access to board is restricted");
-}
-
-async function requireBoardMember(boardId: string, userId: string) {
-  const [board] = await db.select().from(boards).where(eq(boards.id, boardId));
-  if (!board) throw new NotFoundException("Board not found");
-  const isOwner = board.ownerId === userId;
-  const [member] = await db
-    .select()
-    .from(boardMembers)
-    .where(and(eq(boardMembers.boardId, boardId), eq(boardMembers.userId, userId)));
-  if (!isOwner && !member) throw new ForbiddenException("Access to board is restricted");
-  return board;
-}
-
 @Injectable()
 export class TasksService {
   private async getTaskWithBoardAccess(taskId: number, userId: string) {
@@ -81,7 +66,7 @@ export class TasksService {
     const label = `${board.idPrefix}-${number}`;
 
     const columnTasks = await db.select({ position: tasks.position }).from(tasks).where(eq(tasks.columnId, columnId));
-    const position = input.position ?? (columnTasks.reduce((max, r) => Math.max(max, r.position), -1) + 1);
+    const position = input.position ?? nextPosition(columnTasks);
 
     const [created] = await db
       .insert(tasks)
@@ -93,8 +78,6 @@ export class TasksService {
         title: input.title,
         description: input.description ?? null,
         tag: input.tag ?? null,
-        checklistDone: null,
-        checklistTotal: null,
         dueDate: input.dueDate ?? null,
         position,
       } as typeof tasks.$inferInsert)
@@ -147,7 +130,7 @@ export class TasksService {
     if (fromColumn.id === toColumnId) return { from: fromColumn.name, to: toColumn.name };
 
     const toTasks = await db.select({ position: tasks.position }).from(tasks).where(eq(tasks.columnId, toColumnId));
-    const position = toTasks.reduce((max, r) => Math.max(max, r.position), -1) + 1;
+    const position = nextPosition(toTasks);
 
     await db.update(tasks).set({ columnId: toColumnId, position, updatedAt: new Date() }).where(eq(tasks.id, taskId));
     return { from: fromColumn.name, to: toColumn.name };

@@ -44,6 +44,7 @@ export class RealtimeService implements OnModuleDestroy {
   constructor(
     private boardsService: BoardsService,
     private notificationsService: NotificationsService,
+    private commentsService: CommentsService,
     private usersService: UsersService,
   ) {}
 
@@ -268,7 +269,7 @@ export class RealtimeService implements OnModuleDestroy {
   ): Promise<void> {
     await this.boardsService.assertBoardAccess(boardId, userId);
 
-    const comment = await new CommentsService().create({ taskId, userId, body });
+    const comment = await this.commentsService.create({ taskId, userId, body });
 
     const [task] = await db.select().from(tasks).where(eq(tasks.id, taskId));
     if (!task || task.boardId !== boardId) throw new Error("Task not found");

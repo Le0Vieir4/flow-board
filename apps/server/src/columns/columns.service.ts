@@ -1,7 +1,8 @@
-import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
-import { and, eq } from "drizzle-orm";
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { eq } from "drizzle-orm";
 import { db } from "../db";
-import { boardColumns, boards, boardMembers } from "../db/schema";
+import { nextPosition, requireBoardMember } from "../common/board-access";
+import { boardColumns } from "../db/schema";
 
 export interface ColumnDetail {
   id: string;
@@ -10,39 +11,22 @@ export interface ColumnDetail {
   position: number;
 }
 
-function assertBoardAccess(board: typeof boards.$inferSelect, userId: string) {
-  const isOwner = board.ownerId === userId;
-  if (!isOwner) throw new ForbiddenException("Access to board is restricted");
-}
-
 @Injectable()
 export class ColumnsService {
-  private async getColumnWithBoard(columnId: string) {
+  private async getColumn(columnId: string) {
     const [column] = await db.select().from(boardColumns).where(eq(boardColumns.id, columnId));
     if (!column) throw new NotFoundException("Column not found");
-
-    const [board] = await db.select().from(boards).where(eq(boards.id, column.boardId));
-    if (!board) throw new NotFoundException("Board not found");
-
-    return { column, board };
+    return column;
   }
 
   async create(boardId: string, userId: string, name: string): Promise<ColumnDetail> {
-    const [board] = await db.select().from(boards).where(eq(boards.id, boardId));
-    if (!board) throw new NotFoundException("Board not found");
-    if (board.ownerId !== userId) {
-      const [member] = await db
-        .select()
-        .from(boardMembers)
-        .where(and(eq(boardMembers.boardId, boardId), eq(boardMembers.userId, userId)));
-      if (!member) throw new ForbiddenException("Access to board is restricted");
-    }
+    await requireBoardMember(boardId, userId);
 
     const rows = await db
       .select({ position: boardColumns.position })
       .from(boardColumns)
       .where(eq(boardColumns.boardId, boardId));
-    const position = (rows.reduce((max, r) => Math.max(max, r.position), -1) ?? -1) + 1;
+    const position = nextPosition(rows);
 
     const [created] = await db
       .insert(boardColumns)
@@ -52,8 +36,8 @@ export class ColumnsService {
   }
 
   async update(columnId: string, userId: string, name: string): Promise<ColumnDetail> {
-    const { column, board } = await this.getColumnWithBoard(columnId);
-    assertBoardAccess(board, userId);
+    const column = await this.getColumn(columnId);
+    await requireBoardMember(column.boardId, userId);
 
     const [updated] = await db
       .update(boardColumns)
@@ -65,8 +49,8 @@ export class ColumnsService {
   }
 
   async remove(columnId: string, userId: string): Promise<void> {
-    const { board } = await this.getColumnWithBoard(columnId);
-    assertBoardAccess(board, userId);
+    const column = await this.getColumn(columnId);
+    await requireBoardMember(column.boardId, userId);
     await db.delete(boardColumns).where(eq(boardColumns.id, columnId));
   }
 }

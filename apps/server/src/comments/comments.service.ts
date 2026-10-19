@@ -1,7 +1,8 @@
 import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
-import { and, eq, desc } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { db } from "../db";
-import { boards, boardMembers, comments, tasks } from "../db/schema";
+import { requireBoardMember } from "../common/board-access";
+import { comments, tasks } from "../db/schema";
 
 export interface CommentDetail {
   id: string;
@@ -19,18 +20,6 @@ function mapComment(row: typeof comments.$inferSelect): CommentDetail {
     body: row.body,
     at: row.createdAt.toISOString(),
   };
-}
-
-async function requireBoardMember(boardId: string, userId: string) {
-  const [board] = await db.select().from(boards).where(eq(boards.id, boardId));
-  if (!board) throw new NotFoundException("Board not found");
-  const isOwner = board.ownerId === userId;
-  const [member] = await db
-    .select()
-    .from(boardMembers)
-    .where(and(eq(boardMembers.boardId, boardId), eq(boardMembers.userId, userId)));
-  if (!isOwner && !member) throw new ForbiddenException("Access to board is restricted");
-  return board;
 }
 
 @Injectable()

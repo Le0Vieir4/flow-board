@@ -27,18 +27,20 @@ function clearSession(ctx: { clearCookie: (name: string, options?: CookieOptions
   ctx.clearCookie(REFRESH_COOKIE);
 }
 
+const usersService = new UsersService();
+const emailService = new EmailService();
+const authService = new AuthService(usersService, emailService);
+
 export const authRouter = router({
   register: publicProcedure
     .input(RegisterRequest)
     .mutation(async ({ ctx, input }) => {
-      const authService = new AuthService(new UsersService(), new EmailService());
       const user = await authService.register(input);
       const tokens = await authService.issueTokens(user);
       issueSession(ctx, tokens);
       return { user };
     }),
   login: publicProcedure.input(LoginRequest).mutation(async ({ ctx, input }) => {
-    const authService = new AuthService(new UsersService(), new EmailService());
     const user = await authService.login(input);
     const tokens = await authService.issueTokens(user);
     issueSession(ctx, tokens);
@@ -47,7 +49,6 @@ export const authRouter = router({
   refresh: publicProcedure
     .input(RefreshTokenRequest.optional())
     .mutation(async ({ ctx, input }) => {
-      const authService = new AuthService(new UsersService(), new EmailService());
       const token = input?.refreshToken ?? ctx.cookies[REFRESH_COOKIE];
       if (!token) {
         throw new TRPCError({ code: "UNAUTHORIZED", message: "No refresh token" });
@@ -58,46 +59,40 @@ export const authRouter = router({
     }),
   logout: publicProcedure.mutation(async ({ ctx }) => {
     const token = ctx.cookies[REFRESH_COOKIE];
-    const authService = new AuthService(new UsersService(), new EmailService());
     if (token) await authService.logout(token);
     clearSession(ctx);
     return { ok: true };
   }),
   me: authedProcedure.query(async ({ ctx }) => {
-    return new UsersService().findById(ctx.user.id);
+    return usersService.findById(ctx.user.id);
   }),
   "verify-email": publicProcedure
     .input(VerifyEmailRequest)
     .mutation(async ({ input }) => {
-      const authService = new AuthService(new UsersService(), new EmailService());
       await authService.verifyEmail(input.token);
       return { ok: true };
     }),
   "forgot-password": publicProcedure
     .input(ForgotPasswordRequest)
     .mutation(async ({ input }) => {
-      const authService = new AuthService(new UsersService(), new EmailService());
       await authService.sendPasswordReset(input.email);
       return { ok: true };
     }),
   "reset-password": publicProcedure
     .input(ResetPasswordRequest)
     .mutation(async ({ input }) => {
-      const authService = new AuthService(new UsersService(), new EmailService());
       await authService.resetPassword(input.token, input.password);
       return { ok: true };
     }),
   "resend-verification": publicProcedure
     .input(ResendVerificationRequest)
     .mutation(async ({ input }) => {
-      const authService = new AuthService(new UsersService(), new EmailService());
       await authService.resendEmailVerification(input.email);
       return { ok: true };
     }),
   "change-password": authedProcedure
     .input(ChangePasswordRequest)
     .mutation(async ({ ctx, input }) => {
-      const authService = new AuthService(new UsersService(), new EmailService());
       await authService.changePassword(ctx.user.id, input.currentPassword, input.newPassword);
       return { ok: true };
     }),

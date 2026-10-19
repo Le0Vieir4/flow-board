@@ -3,9 +3,10 @@ import { RealtimeService } from "./realtime.service";
 import { BoardsModule } from "../boards/boards.module";
 import { NotificationsModule } from "../notifications/notifications.module";
 import { UsersModule } from "../users/users.module";
+import { CommentsModule } from "../comments/comments.module";
 
 @Module({
-  imports: [BoardsModule, NotificationsModule, UsersModule],
+  imports: [BoardsModule, NotificationsModule, UsersModule, CommentsModule],
   providers: [RealtimeService],
   exports: [RealtimeService],
 })

@@ -1,7 +1,16 @@
 import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
-import { and, eq, desc } from "drizzle-orm";
+import { eq, desc, inArray } from "drizzle-orm";
 import { db } from "../db";
+import { requireBoardMember } from "../common/board-access";
+import { BoardStatus } from "@flow/shared";
 import { boards, boardMembers, boardColumns, tasks, taskAssignees, taskChecklists, comments } from "../db/schema";
+
+export interface TaskComment {
+  id: string;
+  userId: string;
+  body: string;
+  at: string;
+}
 
 export interface TaskDetail {
   id: number;
@@ -14,7 +23,7 @@ export interface TaskDetail {
   tag: string | null;
   assignees: string[];
   checklistId: string | null;
-  comments: { id: string; userId: string; body: string; at: string }[];
+  comments: TaskComment[];
   dueDate: string | null;
   position: number;
   createdAt: Date;
@@ -56,17 +65,12 @@ function boardIdPrefix(name: string): string {
   );
 }
 
-async function mapTask(row: typeof tasks.$inferSelect, assignees: string[]): Promise<TaskDetail> {
-  const [checklistRow] = await db
-    .select()
-    .from(taskChecklists)
-    .where(eq(taskChecklists.taskId, row.id));
-  const commentRows = await db
-    .select()
-    .from(comments)
-    .where(eq(comments.taskId, row.id))
-    .orderBy(desc(comments.createdAt));
-
+function mapTask(
+  row: typeof tasks.$inferSelect,
+  assignees: string[],
+  checklistRow: typeof taskChecklists.$inferSelect | null,
+  taskComments: TaskComment[],
+): TaskDetail {
   return {
     id: row.id,
     boardId: row.boardId,
@@ -78,12 +82,7 @@ async function mapTask(row: typeof tasks.$inferSelect, assignees: string[]): Pro
     tag: row.tag ?? null,
     assignees,
     checklistId: checklistRow?.id ?? null,
-    comments: commentRows.map((c) => ({
-      id: c.id,
-      userId: c.userId,
-      body: c.body,
-      at: c.createdAt.toISOString(),
-    })),
+    comments: taskComments,
     dueDate: row.dueDate ?? null,
     position: row.position,
     createdAt: row.createdAt,
@@ -93,24 +92,12 @@ async function mapTask(row: typeof tasks.$inferSelect, assignees: string[]): Pro
 
 @Injectable()
 export class BoardsService {
-  private async ensureBoardAccess(boardId: string, userId: string): Promise<typeof boards.$inferSelect> {
-    const [board] = await db.select().from(boards).where(eq(boards.id, boardId));
-    if (!board) throw new NotFoundException("Board not found");
-    const isOwner = board.ownerId === userId;
-    const [member] = await db
-      .select()
-      .from(boardMembers)
-      .where(and(eq(boardMembers.boardId, boardId), eq(boardMembers.userId, userId)));
-    if (!isOwner && !member) throw new ForbiddenException("Access to board is restricted");
-    return board;
-  }
-
   async assertBoardAccess(boardId: string, userId: string): Promise<void> {
-    await this.ensureBoardAccess(boardId, userId);
+    await requireBoardMember(boardId, userId);
   }
 
   private async ensureBoardOwner(boardId: string, userId: string): Promise<typeof boards.$inferSelect> {
-    const board = await this.ensureBoardAccess(boardId, userId);
+    const board = await requireBoardMember(boardId, userId);
     if (board.ownerId !== userId) throw new ForbiddenException("Only the board owner can do this");
     return board;
   }
@@ -120,7 +107,6 @@ export class BoardsService {
     if (!board) throw new NotFoundException("Board not found");
 
     const memberRows = await db.select().from(boardMembers).where(eq(boardMembers.boardId, boardId));
-    const members = memberRows.map((m) => m.userId);
 
     const columns = await db
       .select()
@@ -128,29 +114,74 @@ export class BoardsService {
       .where(eq(boardColumns.boardId, boardId))
       .orderBy(boardColumns.position);
 
-    const columnDetails: ColumnDetail[] = [];
-    for (const column of columns) {
-      const taskRows = await db
-        .select()
-        .from(tasks)
-        .where(eq(tasks.columnId, column.id))
-        .orderBy(desc(tasks.number));
-      const taskDetails: TaskDetail[] = [];
-      for (const task of taskRows) {
-        const assigneeRows = await db
-          .select({ userId: taskAssignees.userId })
+    const columnIds = columns.map((c) => c.id);
+    const taskRows = columnIds.length
+      ? await db
+          .select()
+          .from(tasks)
+          .where(inArray(tasks.columnId, columnIds))
+          .orderBy(desc(tasks.number))
+      : [];
+    const taskIds = taskRows.map((t) => t.id);
+
+    const assigneeRows = taskIds.length
+      ? await db
+          .select({ taskId: taskAssignees.taskId, userId: taskAssignees.userId })
           .from(taskAssignees)
-          .where(eq(taskAssignees.taskId, task.id));
-        taskDetails.push(await mapTask(task, assigneeRows.map((a) => a.userId)));
-      }
-      columnDetails.push({
+          .where(inArray(taskAssignees.taskId, taskIds))
+      : [];
+    const checklistRows = taskIds.length
+      ? await db.select().from(taskChecklists).where(inArray(taskChecklists.taskId, taskIds))
+      : [];
+    const commentRows = taskIds.length
+      ? await db
+          .select()
+          .from(comments)
+          .where(inArray(comments.taskId, taskIds))
+          .orderBy(desc(comments.createdAt))
+      : [];
+
+    const assigneesByTask = new Map<number, string[]>();
+    for (const row of assigneeRows) {
+      const list = assigneesByTask.get(row.taskId) ?? [];
+      list.push(row.userId);
+      assigneesByTask.set(row.taskId, list);
+    }
+
+    const checklistByTask = new Map(checklistRows.map((r) => [r.taskId, r]));
+
+    const commentsByTask = new Map<number, TaskComment[]>();
+    for (const c of commentRows) {
+      const list = commentsByTask.get(c.taskId) ?? [];
+      list.push({ id: c.id, userId: c.userId, body: c.body, at: c.createdAt.toISOString() });
+      commentsByTask.set(c.taskId, list);
+    }
+
+    const tasksByColumn = new Map<string, typeof tasks.$inferSelect[]>();
+    for (const task of taskRows) {
+      const list = tasksByColumn.get(task.columnId) ?? [];
+      list.push(task);
+      tasksByColumn.set(task.columnId, list);
+    }
+
+    const columnDetails: ColumnDetail[] = await Promise.all(
+      columns.map(async (column) => ({
         id: column.id,
         boardId: column.boardId,
         name: column.name,
         position: column.position,
-        tasks: taskDetails,
-      });
-    }
+        tasks: await Promise.all(
+          (tasksByColumn.get(column.id) ?? []).map((task) =>
+            mapTask(
+              task,
+              assigneesByTask.get(task.id) ?? [],
+              checklistByTask.get(task.id) ?? null,
+              commentsByTask.get(task.id) ?? [],
+            ),
+          ),
+        ),
+      })),
+    );
 
     return {
       id: board.id,
@@ -159,7 +190,7 @@ export class BoardsService {
       favorite: board.favorite,
       status: board.status,
       ownerId: board.ownerId,
-      members,
+      members: memberRows.map((m) => m.userId),
       updatedAt: board.updatedAt,
       createdAt: board.createdAt,
       columns: columnDetails,
@@ -181,7 +212,7 @@ export class BoardsService {
   }
 
   async findOne(boardId: string, userId: string): Promise<BoardDetail> {
-    await this.ensureBoardAccess(boardId, userId);
+    await requireBoardMember(boardId, userId);
     return this.loadBoardDetail(boardId);
   }
 
@@ -194,11 +225,9 @@ export class BoardsService {
     await db.insert(boardMembers).values({ boardId: board.id, userId: ownerId } as typeof boardMembers.$inferInsert);
 
     const defaultColumns = ["Backlog", "Todo", "In Progress"];
-    for (let i = 0; i < defaultColumns.length; i++) {
-      await db
-        .insert(boardColumns)
-        .values({ boardId: board.id, name: defaultColumns[i], position: i } as typeof boardColumns.$inferInsert);
-    }
+    await db.insert(boardColumns).values(
+      defaultColumns.map((name, position) => ({ boardId: board.id, name, position } as typeof boardColumns.$inferInsert)),
+    );
 
     return this.loadBoardDetail(board.id);
   }
@@ -208,8 +237,8 @@ export class BoardsService {
     userId: string,
     patch: { name?: string; favorite?: boolean; status?: string },
   ): Promise<BoardDetail> {
-    await this.ensureBoardAccess(boardId, userId);
-    if (patch.status !== undefined && patch.status !== "active" && patch.status !== "on-hold" && patch.status !== "archived") {
+    await requireBoardMember(boardId, userId);
+    if (patch.status !== undefined && !BoardStatus.safeParse(patch.status).success) {
       throw new ForbiddenException("Invalid board status");
     }
     const values: Record<string, unknown> = { updatedAt: new Date() };
@@ -228,7 +257,7 @@ export class BoardsService {
   }
 
   async duplicate(boardId: string, userId: string): Promise<BoardDetail> {
-    await this.ensureBoardAccess(boardId, userId);
+    await requireBoardMember(boardId, userId);
     const source = await this.loadBoardDetail(boardId);
 
     const [newBoard] = await db
@@ -246,14 +275,14 @@ export class BoardsService {
       userId,
     } as typeof boardMembers.$inferInsert);
 
+    let number = await this.nextTaskNumber(newBoard.id);
     for (const column of source.columns) {
       const [newCol] = await db
         .insert(boardColumns)
         .values({ boardId: newBoard.id, name: column.name, position: column.position } as typeof boardColumns.$inferInsert)
         .returning();
       for (const task of column.tasks) {
-        const numberRows = await db.select({ number: tasks.number }).from(tasks).where(eq(tasks.boardId, newBoard.id));
-        const number = numberRows.reduce((max: number, r: { number: number }) => Math.max(max, r.number), 0) + 1;
+        number += 1;
         const [newTask] = await db
           .insert(tasks)
           .values({
@@ -264,8 +293,6 @@ export class BoardsService {
             title: task.title,
             description: task.description,
             tag: task.tag,
-            checklistDone: null,
-            checklistTotal: null,
             dueDate: null,
             position: task.position,
           } as typeof tasks.$inferInsert)
@@ -279,5 +306,10 @@ export class BoardsService {
     }
 
     return this.loadBoardDetail(newBoard.id);
+  }
+
+  private async nextTaskNumber(boardId: string): Promise<number> {
+    const numberRows = await db.select({ number: tasks.number }).from(tasks).where(eq(tasks.boardId, boardId));
+    return numberRows.reduce((max, r) => Math.max(max, r.number), 0);
   }
 }

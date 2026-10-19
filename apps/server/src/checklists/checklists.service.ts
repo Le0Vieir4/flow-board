@@ -1,7 +1,8 @@
 import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db } from "../db";
-import { boards, boardColumns, boardMembers, tasks, taskChecklists } from "../db/schema";
+import { requireBoardMember } from "../common/board-access";
+import { boardColumns, tasks, taskChecklists } from "../db/schema";
 
 export interface ChecklistDetail {
   id: string;
@@ -19,18 +20,6 @@ function mapChecklist(row: typeof taskChecklists.$inferSelect): ChecklistDetail 
     total: row.total,
     updatedAt: row.updatedAt,
   };
-}
-
-async function requireBoardMember(boardId: string, userId: string) {
-  const [board] = await db.select().from(boards).where(eq(boards.id, boardId));
-  if (!board) throw new NotFoundException("Board not found");
-  const isOwner = board.ownerId === userId;
-  const [member] = await db
-    .select()
-    .from(boardMembers)
-    .where(and(eq(boardMembers.boardId, boardId), eq(boardMembers.userId, userId)));
-  if (!isOwner && !member) throw new ForbiddenException("Access to board is restricted");
-  return board;
 }
 
 @Injectable()

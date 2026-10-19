@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import type { Board, TagType, Task } from "@flow/shared";
 import { useUpdateTask, useDeleteTask, useMoveTask, useAddComment, useComments, useSetChecklist, useChecklist } from "@/hooks/queries/boards";
 import { useUsers } from "@/hooks/queries/users";
 import { useAuth } from "@/hooks/useAuth";
+import { useClickOutside } from "@/hooks/useClickOutside";
 import { announceTaskMove } from "@/hooks/useRealtime";
 import { Modal } from "@flow/ui";
 import { Avatar, Button, Chip } from "@flow/ui";
@@ -46,23 +47,7 @@ function AssigneePicker({ board, task }: { board: Board; task: Task }) {
     setOpen((v) => !v);
   }
 
-  useEffect(() => {
-    if (!open) return;
-    const onDown = (e: MouseEvent) => {
-      if (triggerRef.current && !triggerRef.current.contains(e.target as Node) && !listRef.current?.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
-    window.addEventListener("mousedown", onDown);
-    window.addEventListener("keydown", onKey);
-    return () => {
-      window.removeEventListener("mousedown", onDown);
-      window.removeEventListener("keydown", onKey);
-    };
-  }, [open]);
+  useClickOutside(open, () => setOpen(false), triggerRef, listRef);
 
   function toggle(userId: string) {
     const has = task.assignees.includes(userId);
