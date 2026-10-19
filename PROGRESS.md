@@ -77,7 +77,7 @@
 - Run `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm build`
 
 ## Production Readiness Checklist
-- [ ] Database migrations applied (`0000` through `0003`)
+- [ ] Database migrations applied (`0000` through `0004`)
 - [ ] `RESEND_API_KEY` set in production environment
 - [ ] `JWT_SECRET` set to strong random value in production
 - [ ] `pnpm build` passes for all packages
